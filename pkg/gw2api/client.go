@@ -1,4 +1,4 @@
-package gw2
+package gw2api
 
 import (
 	"fmt"
