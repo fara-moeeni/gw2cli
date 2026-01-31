@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"gw2cli/pkg/gw2api"
 )
@@ -15,6 +16,45 @@ type Service struct {
 
 func NewService(client *gw2api.Client) *Service {
 	return &Service{client: client}
+}
+
+// CharacterSummary contains high-level info for listing characters.
+type CharacterSummary struct {
+	Name       string
+	Race       string
+	Gender     string
+	Profession string
+	Level      int
+	Created    time.Time
+	Age        time.Duration // Playtime
+}
+
+func (s *Service) GetCharacterList() ([]CharacterSummary, error) {
+	chars, err := s.client.GetCharacters()
+	if err != nil {
+		return nil, err
+	}
+
+	var summary []CharacterSummary
+	for _, c := range chars {
+		createdTime, _ := time.Parse(time.RFC3339, c.Created)
+		summary = append(summary, CharacterSummary{
+			Name:       c.Name,
+			Race:       c.Race,
+			Gender:     c.Gender,
+			Profession: c.Profession,
+			Level:      c.Level,
+			Created:    createdTime,
+			Age:        time.Duration(c.Age) * time.Second,
+		})
+	}
+	
+	// Sort by Name
+	sort.Slice(summary, func(i, j int) bool {
+		return summary[i].Name < summary[j].Name
+	})
+
+	return summary, nil
 }
 
 // FetchAll retrieves all items from Bank, Shared, and Characters.

@@ -33,6 +33,9 @@ Options:
   -list-types
         List all unique item types found in your inventory.
 
+  -list-characters
+        List all characters on your account with details (Level, Profession, etc).
+
   -help
         Show this help message.`)
 }
@@ -45,7 +48,6 @@ Description:
   Filters search results to strictly match a specific Item Type.
   ... (Help text truncated for brevity, same as before) ...
   `)
-  // (I will keep the text concise for this tool call, assume standard help text)
 }
 
 func PrintResults(items []inventory.ItemDetail) {
@@ -70,5 +72,20 @@ func PrintTypes(types []string) {
 	fmt.Println("\n--- Available Item Types (in your inventory) ---")
 	for _, t := range types {
 		fmt.Println(t)
+	}
+}
+
+func PrintCharacters(chars []inventory.CharacterSummary) {
+	if len(chars) == 0 {
+		fmt.Println("No characters found on this account.")
+		return
+	}
+
+	fmt.Printf("\n--- Your Characters (%d) ---\n", len(chars))
+	fmt.Printf("% -20s %-15s %-10s %-5s %-10s\n", "Name", "Profession", "Race", "Lvl", "Played")
+	fmt.Println("------------------------------------------------------------------")
+	for _, c := range chars {
+		hours := int(c.Age.Hours())
+		fmt.Printf("% -20s %-15s %-10s %-5d %dh\n", c.Name, c.Profession, c.Race, c.Level, hours)
 	}
 }

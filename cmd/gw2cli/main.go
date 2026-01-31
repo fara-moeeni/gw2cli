@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -18,6 +19,7 @@ func main() {
 	typeFlag := flag.String("type", "", "Filter by strict Item Type")
 	charFlag := flag.String("character", "", "Search by Character Name or Location")
 	listTypesFlag := flag.Bool("list-types", false, "List all unique item types")
+	listCharsFlag := flag.Bool("list-characters", false, "List all characters")
 	helpFlag := flag.Bool("help", false, "Show help")
 	flag.Parse()
 
@@ -36,19 +38,22 @@ func main() {
 		if *itemFlag == "-list-types" {
 			*listTypesFlag = true
 			*itemFlag = "" // Reset item flag so we don't search for it
-				} else if *itemFlag == "-type" || *itemFlag == "-character" || *itemFlag == "-help" {
-					log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
-				}
-			}
-		
-			if strings.HasPrefix(*typeFlag, "-") {
-				log.Fatalf("Error: Flag provided as value for -type. Usage: ./gw2cli -type <category>")
-			}
-			if strings.HasPrefix(*charFlag, "-") {
-				log.Fatalf("Error: Flag provided as value for -character. Usage: ./gw2cli -character <name>")
-			}
-		
-			// (Simpler check for help args)
+		} else if *itemFlag == "-list-characters" {
+			*listCharsFlag = true
+			*itemFlag = ""
+		} else if *itemFlag == "-type" || *itemFlag == "-character" || *itemFlag == "-help" {
+			log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
+		}
+	}
+
+	if strings.HasPrefix(*typeFlag, "-") {
+		log.Fatalf("Error: Flag provided as value for -type. Usage: ./gw2cli -type <category>")
+	}
+	if strings.HasPrefix(*charFlag, "-") {
+		log.Fatalf("Error: Flag provided as value for -character. Usage: ./gw2cli -character <name>")
+	}
+
+	// (Simpler check for help args)
 	if strings.ToLower(*typeFlag) == "help" || strings.ToLower(*itemFlag) == "help" || strings.ToLower(*charFlag) == "help" {
 		ui.PrintGlobalHelp() // Simplified for now, or route to specific help
 		return
@@ -60,12 +65,23 @@ func main() {
 		log.Fatal("Please set the GW2_API_KEY environment variable")
 	}
 	client := gw2api.NewClient(apiKey)
+	invService := inventory.NewService(client)
 
-	// 4. Fetch Data (Business Logic)
+	// 4. Handle -list-characters (Exclusive Action)
+	if *listCharsFlag {
+		fmt.Println("Fetching character list...")
+		chars, err := invService.GetCharacterList()
+		if err != nil {
+			log.Fatalf("Error fetching characters: %v", err)
+		}
+		ui.PrintCharacters(chars)
+		return
+	}
+
+	// 5. Fetch Data (Inventory)
 	fmtStr := "Fetching account data...\n"
 	os.Stdout.WriteString(fmtStr)
 	
-	invService := inventory.NewService(client)
 	allItems, err := invService.FetchAll()
 	if err != nil {
 		log.Fatalf("Error fetching inventory: %v", err)
@@ -76,14 +92,14 @@ func main() {
 		return
 	}
 
-	// 5. Handle -list-types
+	// 6. Handle -list-types
 	if *listTypesFlag {
 		types := inventory.GetUniqueTypes(allItems)
 		ui.PrintTypes(types)
 		return
 	}
 
-	// 6. Filter Results
+	// 7. Filter Results
 	// Combine positional args into the "item" search if no flag provided
 	globalFilter := strings.Join(flag.Args(), " ")
 	searchTerm := *itemFlag
@@ -101,6 +117,6 @@ func main() {
 
 	results := inventory.Search(allItems, criteria)
 
-	// 7. Display Results
+	// 8. Display Results
 	ui.PrintResults(results)
 }

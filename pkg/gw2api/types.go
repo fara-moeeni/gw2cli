@@ -25,9 +25,15 @@ type EquipmentSlot struct {
 }
 
 type Character struct {
-	Name      string          `json:"name"`
-	Bags      []*Bag          `json:"bags"` // Pointers because bag slots can be empty/null
-	Equipment []EquipmentSlot `json:"equipment"`
+	Name       string          `json:"name"`
+	Race       string          `json:"race"`
+	Gender     string          `json:"gender"`
+	Profession string          `json:"profession"`
+	Level      int             `json:"level"`
+	Age        int             `json:"age"` // Seconds played
+	Created    string          `json:"created"`
+	Bags       []*Bag          `json:"bags"` // Pointers because bag slots can be empty/null
+	Equipment  []EquipmentSlot `json:"equipment"`
 }
 
 type AccountInventory []*InventorySlot // Bank/Shared can have nulls
