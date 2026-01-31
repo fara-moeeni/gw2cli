@@ -4,10 +4,6 @@ gw2cli
 *.dll
 *.so
 
-# AI / Development Logs (Zero-Trace)
-GEMINI.md
-.gemini/
-
 # Environment / Secrets
 .env
 *.env
