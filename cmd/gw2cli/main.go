@@ -26,7 +26,29 @@ func main() {
 		ui.PrintGlobalHelp()
 		return
 	}
-	// (Simpler check for help args)
+
+	// Safety Check: Did the user type "-item -list-types"?
+	// If *itemFlag starts with "-", the parser consumed the next flag as the value.
+	if strings.HasPrefix(*itemFlag, "-") {
+		// If they explicitly wanted to search for a string starting with "-", they can escape it.
+		// But 99% of the time, this is a typo.
+		// Check if the "value" matches a known flag name
+		if *itemFlag == "-list-types" {
+			*listTypesFlag = true
+			*itemFlag = "" // Reset item flag so we don't search for it
+				} else if *itemFlag == "-type" || *itemFlag == "-character" || *itemFlag == "-help" {
+					log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
+				}
+			}
+		
+			if strings.HasPrefix(*typeFlag, "-") {
+				log.Fatalf("Error: Flag provided as value for -type. Usage: ./gw2cli -type <category>")
+			}
+			if strings.HasPrefix(*charFlag, "-") {
+				log.Fatalf("Error: Flag provided as value for -character. Usage: ./gw2cli -character <name>")
+			}
+		
+			// (Simpler check for help args)
 	if strings.ToLower(*typeFlag) == "help" || strings.ToLower(*itemFlag) == "help" || strings.ToLower(*charFlag) == "help" {
 		ui.PrintGlobalHelp() // Simplified for now, or route to specific help
 		return
