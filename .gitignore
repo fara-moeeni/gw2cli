@@ -1,0 +1,13 @@
+# Binaries
+gw2cli
+*.exe
+*.dll
+*.so
+
+# AI / Development Logs (Zero-Trace)
+GEMINI.md
+.gemini/
+
+# Environment / Secrets
+.env
+*.env
