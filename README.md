@@ -17,10 +17,26 @@ A blazing fast CLI tool written in Go to search your entire Guild Wars 2 account
 ### Build from Source
 
 ```bash
-git clone https://github.com/yourusername/gw2cli.git
+git clone https://github.com/fara-moeeni/gw2cli.git
 cd gw2cli
-go build -o gw2cli main.go
+make build
 ```
+
+## Release & Versioning
+
+This project follows **Conventional Commits** and **Semantic Versioning**. Releases are automated via GitHub Actions.
+
+### How to Release
+1. Commit your changes using conventional messages (e.g., `feat: ...`, `fix: ...`).
+2. Tag the commit with a version:
+   ```bash
+   git tag -a v1.0.0 -m "Release v1.0.0"
+   ```
+3. Push the tag:
+   ```bash
+   git push origin v1.0.0
+   ```
+This will automatically trigger a GitHub Release with compiled binaries for Linux, macOS, and Windows.
 
 ## Usage
 
