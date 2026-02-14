@@ -100,7 +100,7 @@ func (c *Client) GetItems(ids []int) ([]Item, error) {
 
 		batch := list[i:end]
 		var batchItems []Item
-		
+
 		resp, err := c.rest.R().
 			SetQueryParam("ids", strings.Join(batch, ",")).
 			SetResult(&batchItems).
@@ -116,4 +116,45 @@ func (c *Client) GetItems(ids []int) ([]Item, error) {
 	}
 
 	return allItems, nil
+}
+
+func (c *Client) GetWallet() ([]WalletCurrency, error) {
+	var wallet []WalletCurrency
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&wallet).
+		Get("/account/wallet")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return wallet, nil
+}
+
+func (c *Client) GetCurrencies(ids []int) ([]Currency, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	var list []string
+	for _, id := range ids {
+		list = append(list, strconv.Itoa(id))
+	}
+
+	var currencies []Currency
+	resp, err := c.rest.R().
+		SetQueryParam("ids", strings.Join(list, ",")).
+		SetResult(&currencies).
+		Get("/currencies")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return currencies, nil
 }

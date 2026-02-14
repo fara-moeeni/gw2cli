@@ -37,3 +37,21 @@ type Character struct {
 }
 
 type AccountInventory []*InventorySlot // Bank/Shared can have nulls
+
+type WalletCurrency struct {
+	ID int `json:"id"`
+
+	Value int `json:"value"`
+}
+
+type Currency struct {
+	ID int `json:"id"`
+
+	Name string `json:"name"`
+
+	Description string `json:"description"`
+
+	Order int `json:"order"`
+
+	Icon string `json:"icon"`
+}

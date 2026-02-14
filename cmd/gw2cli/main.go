@@ -20,9 +20,9 @@ func main() {
 	charFlag := flag.String("character", "", "Search by Character Name or Location")
 	listTypesFlag := flag.Bool("list-types", false, "List all unique item types")
 	listCharsFlag := flag.Bool("list-characters", false, "List all characters")
+	walletFlag := flag.Bool("wallet", false, "Show account wallet")
 	helpFlag := flag.Bool("help", false, "Show help")
 	flag.Parse()
-
 	// 2. Handle Immediate Help Requests
 	if *helpFlag {
 		ui.PrintGlobalHelp()
@@ -41,7 +41,11 @@ func main() {
 		} else if *itemFlag == "-list-characters" {
 			*listCharsFlag = true
 			*itemFlag = ""
+		} else if *itemFlag == "-wallet" {
+			*walletFlag = true
+			*itemFlag = ""
 		} else if *itemFlag == "-type" || *itemFlag == "-character" || *itemFlag == "-help" {
+
 			log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
 		}
 	}
@@ -78,10 +82,22 @@ func main() {
 		return
 	}
 
-	// 5. Fetch Data (Inventory)
+	// 5. Handle -wallet (Exclusive Action)
+	if *walletFlag {
+		fmt.Println("Fetching account wallet...")
+		wallet, err := invService.GetWallet()
+		if err != nil {
+			log.Fatalf("Error fetching wallet: %v", err)
+		}
+		ui.PrintWallet(wallet)
+		return
+	}
+
+	// 6. Fetch Data (Inventory)
 	fmtStr := "Fetching account data...\n"
+
 	os.Stdout.WriteString(fmtStr)
-	
+
 	allItems, err := invService.FetchAll()
 	if err != nil {
 		log.Fatalf("Error fetching inventory: %v", err)

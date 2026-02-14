@@ -48,7 +48,7 @@ func (s *Service) GetCharacterList() ([]CharacterSummary, error) {
 			Age:        time.Duration(c.Age) * time.Second,
 		})
 	}
-	
+
 	// Sort by Name
 	sort.Slice(summary, func(i, j int) bool {
 		return summary[i].Name < summary[j].Name
@@ -180,7 +180,7 @@ func Search(items []ItemDetail, criteria FilterCriteria) []ItemDetail {
 		if term != "" {
 			match := strings.Contains(strings.ToLower(item.Name), term) ||
 				strings.Contains(fmt.Sprintf("%d", item.ID), term)
-			
+
 			// Legacy fallback: if no specific type requested, allow term to match Type
 			if targetType == "" && strings.Contains(strings.ToLower(item.Type), term) {
 				match = true
@@ -220,7 +220,7 @@ func GetUniqueTypes(items []ItemDetail) []string {
 	for _, i := range items {
 		typeMap[i.Type] = true
 	}
-	
+
 	var types []string
 	for t := range typeMap {
 		types = append(types, t)

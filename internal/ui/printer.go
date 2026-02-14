@@ -36,6 +36,9 @@ Options:
   -list-characters
         List all characters on your account with details (Level, Profession, etc).
 
+  -wallet
+        Show all currencies in your account wallet.
+
   -help
         Show this help message.`)
 }
@@ -87,5 +90,25 @@ func PrintCharacters(chars []inventory.CharacterSummary) {
 	for _, c := range chars {
 		hours := int(c.Age.Hours())
 		fmt.Printf("% -20s %-15s %-10s %-5d %dh\n", c.Name, c.Profession, c.Race, c.Level, hours)
+	}
+}
+
+func PrintWallet(wallet []inventory.WalletEntry) {
+	if len(wallet) == 0 {
+		fmt.Println("Your wallet is empty.")
+		return
+	}
+
+	fmt.Println("\n--- Account Wallet ---")
+	for _, w := range wallet {
+		// Formatting for Gold/Silver/Copper if it's Coin (ID 1)
+		if w.ID == 1 {
+			gold := w.Value / 10000
+			silver := (w.Value % 10000) / 100
+			copper := w.Value % 100
+			fmt.Printf("%-25s %dg %ds %dc\n", w.Name+":", gold, silver, copper)
+		} else {
+			fmt.Printf("%-25s %d\n", w.Name+":", w.Value)
+		}
 	}
 }
