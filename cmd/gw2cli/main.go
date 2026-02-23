@@ -90,6 +90,8 @@ func main() {
 	invService.BuildCache = *buildCacheFlag
 
 	if *buildCacheFlag {
+		fmt.Println("Note: Building the local database fetches ~70,000 items. Performance depends")
+		fmt.Println("on your internet bandwidth, GW2 API rate limits, and server performance.")
 		if err := invService.EnsureCache(true); err != nil {
 			log.Fatalf("Error building cache: %v", err)
 		}
