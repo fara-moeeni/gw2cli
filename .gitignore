@@ -7,3 +7,4 @@ gw2cli
 # Environment / Secrets
 .env
 *.env
+.vscode/
