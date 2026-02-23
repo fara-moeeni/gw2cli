@@ -12,7 +12,7 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "1.1.0"
+const Version = "1.2.0"
 
 func main() {
 	flag.Usage = ui.PrintGlobalHelp
@@ -26,6 +26,8 @@ func main() {
 	tpOrdersFlag := flag.Bool("tp-orders", false, "Show active Trading Post orders")
 	tpHistoryFlag := flag.Bool("tp-history", false, "Show past Trading Post transactions")
 	tpPriceFlag := flag.String("tp-price", "", "Check current Trading Post prices")
+	buildCacheFlag := flag.Bool("build-cache", false, "Build/update local item database for name search")
+	verboseFlag := flag.Bool("verbose", false, "Enable verbose output")
 	helpFlag := flag.Bool("help", false, "Show help")
 	flag.Parse()
 
@@ -55,7 +57,7 @@ func main() {
 		case "-tp-history":
 			*tpHistoryFlag = true
 			*itemFlag = ""
-		case "-type", "-character", "-tp-price", "-help":
+		case "-type", "-character", "-tp-price", "-build-cache", "-verbose", "-help":
 			log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
 		}
 	}
@@ -69,6 +71,9 @@ func main() {
 	if strings.HasPrefix(*tpPriceFlag, "-") {
 		log.Fatalf("Error: Flag provided as value for -tp-price. Usage: ./gw2cli -tp-price <name or ID>")
 	}
+	if *verboseFlag {
+		os.Stdout.WriteString("Verbose mode enabled.\n")
+	}
 
 	if strings.ToLower(*typeFlag) == "help" || strings.ToLower(*itemFlag) == "help" || strings.ToLower(*charFlag) == "help" {
 		ui.PrintGlobalHelp()
@@ -81,6 +86,18 @@ func main() {
 	}
 	client := gw2api.NewClient(apiKey)
 	invService := inventory.NewService(client)
+	invService.Verbose = *verboseFlag
+	invService.BuildCache = *buildCacheFlag
+
+	if *buildCacheFlag {
+		fmt.Println("Note: Building the local database fetches ~70,000 items. Performance depends")
+		fmt.Println("on your internet bandwidth, GW2 API rate limits, and server performance.")
+		if err := invService.EnsureCache(true); err != nil {
+			log.Fatalf("Error building cache: %v", err)
+		}
+		fmt.Println("Local item database is ready.")
+		return
+	}
 
 	if *listCharsFlag {
 		fmt.Println("Fetching character list...")

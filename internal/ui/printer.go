@@ -8,7 +8,7 @@ import (
 
 func PrintGlobalHelp() {
 	fmt.Println(`
-GW2CLI - Guild Wars 2 Inventory Search Tool (v1.1.0)
+GW2CLI - Guild Wars 2 Inventory Search Tool (v1.2.0)
 
 Usage:
   ./gw2cli [flags] [search terms]
@@ -50,6 +50,14 @@ Options:
 
   -tp-price <item name or ID>
         Look up the current buy and sell price for a specific item.
+        If the local database is missing, it will fallback to items you own.
+
+  -build-cache
+        Build or update the local item database for game-wide name search.
+        This may take a few minutes depending on API limits.
+
+  -verbose
+        Enable verbose output (e.g., progress bars during caching).
 
   -help
         Show this help message.`)

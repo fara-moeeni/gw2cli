@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -16,8 +17,19 @@ type Client struct {
 }
 
 func NewClient(apiKey string) *Client {
+	r := resty.New().
+		SetBaseURL(BaseURL).
+		SetRetryCount(3).
+		SetRetryWaitTime(2 * time.Second).
+		SetRetryMaxWaitTime(10 * time.Second).
+		AddRetryCondition(
+			func(r *resty.Response, err error) bool {
+				return err != nil || r.StatusCode() >= 500 || r.StatusCode() == 429
+			},
+		)
+
 	return &Client{
-		rest:   resty.New().SetBaseURL(BaseURL),
+		rest:   r,
 		apiKey: apiKey,
 	}
 }
@@ -90,6 +102,10 @@ func (c *Client) GetCharacters() ([]Character, error) {
 }
 
 func (c *Client) GetItems(ids []int) ([]Item, error) {
+	return c.GetItemsWithProgress(ids, nil)
+}
+
+func (c *Client) GetItemsWithProgress(ids []int, progress func(int, int, []Item)) ([]Item, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -103,7 +119,6 @@ func (c *Client) GetItems(ids []int) ([]Item, error) {
 		}
 	}
 
-	// Chunk requests to respect API limits (max ~200 ids per request)
 	var allItems []Item
 	batchSize := 200
 
@@ -122,12 +137,17 @@ func (c *Client) GetItems(ids []int) ([]Item, error) {
 			Get("/items")
 
 		if err != nil {
-			return nil, err
+			return allItems, err
 		}
 		if resp.IsError() {
-			return nil, fmt.Errorf("API error fetching items: %s", resp.Status())
+			return allItems, fmt.Errorf("API error fetching items: %s", resp.Status())
 		}
+		
 		allItems = append(allItems, batchItems...)
+		
+		if progress != nil {
+			progress(len(allItems), len(list), batchItems)
+		}
 	}
 
 	return allItems, nil
@@ -172,6 +192,21 @@ func (c *Client) GetCurrencies(ids []int) ([]Currency, error) {
 		return nil, fmt.Errorf("API error: %s", resp.Status())
 	}
 	return currencies, nil
+}
+
+func (c *Client) GetAllItemIDs() ([]int, error) {
+	var ids []int
+	resp, err := c.rest.R().
+		SetResult(&ids).
+		Get("/items")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return ids, nil
 }
 
 func (c *Client) GetCommerceDelivery() (*CommerceDelivery, error) {
