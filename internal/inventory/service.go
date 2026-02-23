@@ -11,9 +11,9 @@ import (
 )
 
 type Service struct {
-	client    *gw2api.Client
-	Verbose   bool
-	SkipCache bool
+	client     *gw2api.Client
+	Verbose    bool
+	BuildCache bool
 }
 
 func NewService(client *gw2api.Client) *Service {

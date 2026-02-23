@@ -50,12 +50,11 @@ Options:
 
   -tp-price <item name or ID>
         Look up the current buy and sell price for a specific item.
-        Note: The first time you search by name, a local cache will be built. 
-        This may take a few minutes depending on API limits and connection speed.
+        If the local database is missing, it will fallback to items you own.
 
-  -no-cache
-        Disable local caching. Searching Trading Post prices by name will be 
-        unavailable; only Item IDs will work.
+  -build-cache
+        Build or update the local item database for game-wide name search.
+        This may take a few minutes depending on API limits.
 
   -verbose
         Enable verbose output (e.g., progress bars during caching).

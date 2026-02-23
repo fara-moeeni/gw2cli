@@ -18,7 +18,7 @@ type ItemCache struct {
 	Items []CacheEntry `json:"items"`
 }
 
-func (s *Service) EnsureCache() error {
+func (s *Service) EnsureCache(force bool) error {
 	cachePath, err := getCachePath()
 	if err != nil {
 		return err
@@ -29,31 +29,31 @@ func (s *Service) EnsureCache() error {
 		return err
 	}
 
-	if info, err := os.Stat(cachePath); err == nil {
+	exists := false
+	if _, err := os.Stat(cachePath); err == nil {
 		data, err := os.ReadFile(cachePath)
 		if err == nil {
 			var cache ItemCache
 			if json.Unmarshal(data, &cache) == nil {
-				// If cache is mostly complete (>95%), skip rebuild.
-				// This allows for new items being added but avoids full rebuilds.
 				if len(cache.Items) >= len(allIDs) {
-					return nil
+					if !force {
+						return nil
+					}
+					exists = true
 				}
-				if s.Verbose {
+				if s.Verbose || force {
 					fmt.Printf("Cache exists but is incomplete (%d/%d items). Updating...\n", len(cache.Items), len(allIDs))
 				}
 			}
 		}
-		_ = info
 	}
 
-	fmt.Println("Building local item cache (this may take a minute)...")
+	if !force && !exists {
+		return nil
+	}
 
+	fmt.Println("Building local item database...")
 	items, err := s.client.GetItemsWithProgress(allIDs, func(current, total int) {
-		// Only show progress if verbose is enabled
-		if !s.Verbose {
-			return
-		}
 		pct := float64(current) / float64(total) * 100
 		barSize := 30
 		pos := int(float64(barSize) * (float64(current) / float64(total)))
@@ -61,7 +61,7 @@ func (s *Service) EnsureCache() error {
 		if pos < barSize {
 			bar += ">" + strings.Repeat(" ", barSize-pos-1)
 		}
-		fmt.Printf("\rDownloading item data: [%s] %.1f%% (%d/%d) ", bar, pct, current, total)
+		fmt.Printf("\rProgress: [%s] %.1f%% (%d/%d) ", bar, pct, current, total)
 	})
 
 	if len(items) > 0 {
@@ -71,20 +71,14 @@ func (s *Service) EnsureCache() error {
 		}
 		cache := ItemCache{Items: entries}
 		if data, err := json.Marshal(cache); err == nil {
-			if s.Verbose {
-				fmt.Printf("\nSaving %d items to cache...\n", len(entries))
-			}
 			_ = os.MkdirAll(filepath.Dir(cachePath), 0755)
 			_ = os.WriteFile(cachePath, data, 0644)
 		}
 	}
 
-	if s.Verbose && err == nil {
-		fmt.Println()
-	}
-
+	fmt.Println()
 	if err != nil {
-		return fmt.Errorf("caching interrupted (partial data saved): %w", err)
+		return fmt.Errorf("caching interrupted: %w", err)
 	}
 
 	return nil
@@ -93,6 +87,10 @@ func (s *Service) EnsureCache() error {
 func (s *Service) SearchCache(term string) ([]int, error) {
 	cachePath, err := getCachePath()
 	if err != nil {
+		return nil, err
+	}
+
+	if _, err := os.Stat(cachePath); err != nil {
 		return nil, err
 	}
 
@@ -111,7 +109,6 @@ func (s *Service) SearchCache(term string) ([]int, error) {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
-	// Parallel search for speed
 	numWorkers := 4
 	chunkSize := (len(cache.Items) + numWorkers - 1) / numWorkers
 
