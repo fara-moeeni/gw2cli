@@ -56,3 +56,33 @@ type Currency struct {
 	Order       int    `json:"order"`
 	Icon        string `json:"icon"`
 }
+
+type CommerceDelivery struct {
+	Coins int `json:"coins"`
+	Items []struct {
+		ID    int `json:"id"`
+		Count int `json:"count"`
+	} `json:"items"`
+}
+
+type CommercePrice struct {
+	ID    int `json:"id"`
+	Whitelisted bool `json:"whitelisted"`
+	Buys  struct {
+		Quantity  int `json:"quantity"`
+		UnitPrice int `json:"unit_price"`
+	} `json:"buys"`
+	Sells struct {
+		Quantity  int `json:"quantity"`
+		UnitPrice int `json:"unit_price"`
+	} `json:"sells"`
+}
+
+type CommerceTransaction struct {
+	ID        int       `json:"id"`
+	ItemID    int       `json:"item_id"`
+	Price     int       `json:"price"`
+	Quantity  int       `json:"quantity"`
+	Created   string    `json:"created"`
+	Purchased string    `json:"purchased,omitempty"`
+}

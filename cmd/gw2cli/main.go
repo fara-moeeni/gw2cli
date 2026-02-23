@@ -12,6 +12,8 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
+const Version = "1.1.0"
+
 func main() {
 	flag.Usage = ui.PrintGlobalHelp
 	itemFlag := flag.String("item", "", "Search by Item Name or ID")
@@ -20,6 +22,10 @@ func main() {
 	listTypesFlag := flag.Bool("list-types", false, "List all unique item types")
 	listCharsFlag := flag.Bool("list-characters", false, "List all characters")
 	walletFlag := flag.Bool("wallet", false, "Show account wallet")
+	tpDeliveryFlag := flag.Bool("tp-delivery", false, "Show pending Trading Post deliveries")
+	tpOrdersFlag := flag.Bool("tp-orders", false, "Show active Trading Post orders")
+	tpHistoryFlag := flag.Bool("tp-history", false, "Show past Trading Post transactions")
+	tpPriceFlag := flag.String("tp-price", "", "Check current Trading Post prices")
 	helpFlag := flag.Bool("help", false, "Show help")
 	flag.Parse()
 
@@ -40,7 +46,16 @@ func main() {
 		case "-wallet":
 			*walletFlag = true
 			*itemFlag = ""
-		case "-type", "-character", "-help":
+		case "-tp-delivery":
+			*tpDeliveryFlag = true
+			*itemFlag = ""
+		case "-tp-orders":
+			*tpOrdersFlag = true
+			*itemFlag = ""
+		case "-tp-history":
+			*tpHistoryFlag = true
+			*itemFlag = ""
+		case "-type", "-character", "-tp-price", "-help":
 			log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
 		}
 	}
@@ -50,6 +65,9 @@ func main() {
 	}
 	if strings.HasPrefix(*charFlag, "-") {
 		log.Fatalf("Error: Flag provided as value for -character. Usage: ./gw2cli -character <name>")
+	}
+	if strings.HasPrefix(*tpPriceFlag, "-") {
+		log.Fatalf("Error: Flag provided as value for -tp-price. Usage: ./gw2cli -tp-price <name or ID>")
 	}
 
 	if strings.ToLower(*typeFlag) == "help" || strings.ToLower(*itemFlag) == "help" || strings.ToLower(*charFlag) == "help" {
@@ -74,17 +92,56 @@ func main() {
 		return
 	}
 
-	if *walletFlag {
-		fmt.Println("Fetching account wallet...")
-		wallet, err := invService.GetWallet()
-		if err != nil {
-			log.Fatalf("Error fetching wallet: %v", err)
-		}
-		ui.PrintWallet(wallet)
-		return
-	}
-
-	os.Stdout.WriteString("Fetching account data...\n")
+	        if *walletFlag {
+	                fmt.Println("Fetching account wallet...")
+	                wallet, err := invService.GetWallet()
+	                if err != nil {
+	                        log.Fatalf("Error fetching wallet: %v", err)
+	                }
+	                ui.PrintWallet(wallet)
+	                return
+	        }
+	
+	        if *tpDeliveryFlag {
+	                fmt.Println("Fetching TP delivery...")
+	                delivery, err := invService.GetDelivery()
+	                if err != nil {
+	                        log.Fatalf("Error fetching TP delivery: %v", err)
+	                }
+	                ui.PrintTPDelivery(delivery)
+	                return
+	        }
+	
+	        if *tpOrdersFlag {
+	                fmt.Println("Fetching active TP orders...")
+	                buys, sells, err := invService.GetTransactions(true)
+	                if err != nil {
+	                        log.Fatalf("Error fetching TP orders: %v", err)
+	                }
+	                ui.PrintTPTransactions(buys, sells, true)
+	                return
+	        }
+	
+	        if *tpHistoryFlag {
+	                fmt.Println("Fetching TP transaction history...")
+	                buys, sells, err := invService.GetTransactions(false)
+	                if err != nil {
+	                        log.Fatalf("Error fetching TP history: %v", err)
+	                }
+	                ui.PrintTPTransactions(buys, sells, false)
+	                return
+	        }
+	
+	        if *tpPriceFlag != "" {
+	                fmt.Println("Fetching TP prices...")
+	                prices, err := invService.GetPrices(*tpPriceFlag)
+	                if err != nil {
+	                        log.Fatalf("Error fetching TP prices: %v", err)
+	                }
+	                ui.PrintTPPrice(prices)
+	                return
+	        }
+		os.Stdout.WriteString("Fetching account data...\n")
 
 	allItems, err := invService.FetchAll()
 	if err != nil {

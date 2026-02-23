@@ -8,7 +8,7 @@ import (
 
 func PrintGlobalHelp() {
 	fmt.Println(`
-GW2CLI - Guild Wars 2 Inventory Search Tool
+GW2CLI - Guild Wars 2 Inventory Search Tool (v1.1.0)
 
 Usage:
   ./gw2cli [flags] [search terms]
@@ -38,6 +38,18 @@ Options:
 
   -wallet
         Show all currencies in your account wallet.
+
+  -tp-delivery
+        Show items and coin waiting to be picked up from the Trading Post.
+
+  -tp-orders
+        Show current active buy and sell orders.
+
+  -tp-history
+        Show past transaction history (bought and sold items).
+
+  -tp-price <item name or ID>
+        Look up the current buy and sell price for a specific item.
 
   -help
         Show this help message.`)
@@ -102,12 +114,69 @@ func PrintWallet(wallet []inventory.WalletEntry) {
 	for _, w := range wallet {
 		// Format Coin (ID 1) as Gold/Silver/Copper
 		if w.ID == 1 {
-			gold := w.Value / 10000
-			silver := (w.Value % 10000) / 100
-			copper := w.Value % 100
-			fmt.Printf("%-25s %dg %ds %dc\n", w.Name+":", gold, silver, copper)
+			fmt.Printf("%-25s %s\n", w.Name+":", FormatCoin(w.Value))
 		} else {
 			fmt.Printf("%-25s %d\n", w.Name+":", w.Value)
+		}
+	}
+}
+
+func FormatCoin(value int) string {
+	gold := value / 10000
+	silver := (value % 10000) / 100
+	copper := value % 100
+	return fmt.Sprintf("%dg %ds %dc", gold, silver, copper)
+}
+
+func PrintTPDelivery(delivery *inventory.CommerceDelivery) {
+	fmt.Println("\n--- Trading Post: Ready for Pickup ---")
+	fmt.Printf("Coins: %s\n", FormatCoin(delivery.Coins))
+	if len(delivery.Items) > 0 {
+		fmt.Println("Items:")
+		for _, item := range delivery.Items {
+			fmt.Printf(" - %-30s x%d\n", item.Name, item.Count)
+		}
+	} else {
+		fmt.Println("No items waiting.")
+	}
+}
+
+func PrintTPPrice(prices []inventory.CommercePrice) {
+	if len(prices) == 0 {
+		fmt.Println("No Trading Post data found for item.")
+		return
+	}
+
+	for _, p := range prices {
+		fmt.Printf("\nItem: \033[1m%s\033[0m (ID: %d)\n", p.Name, p.ID)
+		fmt.Printf("Highest Buy Order: %s\n", FormatCoin(p.BuyPrice))
+		fmt.Printf("Lowest Sell Offer: %s\n", FormatCoin(p.SellPrice))
+	}
+}
+
+func PrintTPTransactions(buys, sells []inventory.CommerceTransaction, current bool) {
+	title := "Active Orders"
+	if !current {
+		title = "Recent Transactions"
+	}
+
+	fmt.Printf("\n--- Trading Post: %s ---\n", title)
+	
+	fmt.Println("\nBUYS:")
+	if len(buys) == 0 {
+		fmt.Println(" None")
+	} else {
+		for _, tx := range buys {
+			fmt.Printf(" - %-30s x%-3d at %s\n", tx.Name, tx.Quantity, FormatCoin(tx.Price))
+		}
+	}
+
+	fmt.Println("\nSELLS:")
+	if len(sells) == 0 {
+		fmt.Println(" None")
+	} else {
+		for _, tx := range sells {
+			fmt.Printf(" - %-30s x%-3d at %s\n", tx.Name, tx.Quantity, FormatCoin(tx.Price))
 		}
 	}
 }
