@@ -26,6 +26,7 @@ func main() {
 	tpOrdersFlag := flag.Bool("tp-orders", false, "Show active Trading Post orders")
 	tpHistoryFlag := flag.Bool("tp-history", false, "Show past Trading Post transactions")
 	tpPriceFlag := flag.String("tp-price", "", "Check current Trading Post prices")
+	noCacheFlag := flag.Bool("no-cache", false, "Disable local caching (name search will not work)")
 	verboseFlag := flag.Bool("verbose", false, "Enable verbose output")
 	helpFlag := flag.Bool("help", false, "Show help")
 	flag.Parse()
@@ -56,7 +57,7 @@ func main() {
 		case "-tp-history":
 			*tpHistoryFlag = true
 			*itemFlag = ""
-		case "-type", "-character", "-tp-price", "-verbose", "-help":
+		case "-type", "-character", "-tp-price", "-no-cache", "-verbose", "-help":
 			log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
 		}
 	}
@@ -86,6 +87,7 @@ func main() {
 	client := gw2api.NewClient(apiKey)
 	invService := inventory.NewService(client)
 	invService.Verbose = *verboseFlag
+	invService.SkipCache = *noCacheFlag
 
 	if *listCharsFlag {
 		fmt.Println("Fetching character list...")

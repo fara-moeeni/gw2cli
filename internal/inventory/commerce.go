@@ -79,6 +79,9 @@ func (s *Service) GetPrices(term string) ([]CommercePrice, error) {
 	if _, err := fmt.Sscanf(term, "%d", &termID); err == nil {
 		ids = []int{termID}
 	} else {
+		if s.SkipCache {
+			return nil, fmt.Errorf("name search requires local cache. Use an Item ID instead, or remove -no-cache")
+		}
 		// Use local cache for name search
 		if err := s.EnsureCache(); err != nil {
 			return nil, fmt.Errorf("failed to ensure cache: %w", err)
