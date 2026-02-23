@@ -1,0 +1,9 @@
+# Binaries
+gw2cli
+*.exe
+*.dll
+*.so
+
+# Environment / Secrets
+.env
+*.env
