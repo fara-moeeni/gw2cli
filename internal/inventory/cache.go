@@ -52,6 +52,11 @@ func (s *Service) EnsureCache(force bool) error {
 		return nil
 	}
 
+	// Create directory before starting the long download
+	if err := os.MkdirAll(filepath.Dir(cachePath), 0755); err != nil {
+		return fmt.Errorf("failed to create cache directory: %w", err)
+	}
+
 	fmt.Println("Building local item database...")
 	items, err := s.client.GetItemsWithProgress(allIDs, func(current, total int) {
 		pct := float64(current) / float64(total) * 100
@@ -70,9 +75,12 @@ func (s *Service) EnsureCache(force bool) error {
 			entries = append(entries, CacheEntry{ID: item.ID, Name: item.Name})
 		}
 		cache := ItemCache{Items: entries}
-		if data, err := json.Marshal(cache); err == nil {
-			_ = os.MkdirAll(filepath.Dir(cachePath), 0755)
-			_ = os.WriteFile(cachePath, data, 0644)
+		data, errMarshal := json.Marshal(cache)
+		if errMarshal != nil {
+			return fmt.Errorf("failed to encode cache: %w", errMarshal)
+		}
+		if errWrite := os.WriteFile(cachePath, data, 0644); errWrite != nil {
+			return fmt.Errorf("failed to write cache file: %w", errWrite)
 		}
 	}
 
