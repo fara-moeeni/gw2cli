@@ -174,6 +174,21 @@ func (c *Client) GetCurrencies(ids []int) ([]Currency, error) {
 	return currencies, nil
 }
 
+func (c *Client) GetAllItemIDs() ([]int, error) {
+	var ids []int
+	resp, err := c.rest.R().
+		SetResult(&ids).
+		Get("/items")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return ids, nil
+}
+
 func (c *Client) GetCommerceDelivery() (*CommerceDelivery, error) {
 	var delivery CommerceDelivery
 	resp, err := c.rest.R().

@@ -8,7 +8,7 @@ import (
 
 func PrintGlobalHelp() {
 	fmt.Println(`
-GW2CLI - Guild Wars 2 Inventory Search Tool (v1.1.0)
+GW2CLI - Guild Wars 2 Inventory Search Tool (v1.2.0)
 
 Usage:
   ./gw2cli [flags] [search terms]

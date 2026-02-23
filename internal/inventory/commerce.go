@@ -79,7 +79,24 @@ func (s *Service) GetPrices(term string) ([]CommercePrice, error) {
 	if _, err := fmt.Sscanf(term, "%d", &termID); err == nil {
 		ids = []int{termID}
 	} else {
-		return nil, fmt.Errorf("item search by name not supported for TP price yet, use ID")
+		// Use local cache for name search
+		if err := s.EnsureCache(); err != nil {
+			return nil, fmt.Errorf("failed to ensure cache: %w", err)
+		}
+		cachedIDs, err := s.SearchCache(term)
+		if err != nil {
+			return nil, fmt.Errorf("failed to search cache: %w", err)
+		}
+		ids = cachedIDs
+	}
+
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	// Limit to top results for safety if name matched many items
+	if len(ids) > 10 {
+		ids = ids[:10]
 	}
 
 	apiPrices, err := s.client.GetCommercePrices(ids)
