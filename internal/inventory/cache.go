@@ -49,7 +49,6 @@ func (s *Service) EnsureCache() error {
 
 	fmt.Println("Building local item cache (this may take a minute)...")
 
-	var entries []CacheEntry
 	items, err := s.client.GetItemsWithProgress(allIDs, func(current, total int) {
 		// Only show progress if verbose is enabled
 		if !s.Verbose {
@@ -65,19 +64,22 @@ func (s *Service) EnsureCache() error {
 		fmt.Printf("\rDownloading item data: [%s] %.1f%% (%d/%d) ", bar, pct, current, total)
 	})
 
-	for _, item := range items {
-		entries = append(entries, CacheEntry{ID: item.ID, Name: item.Name})
-	}
-
-	if len(entries) > 0 {
+	if len(items) > 0 {
+		var entries []CacheEntry
+		for _, item := range items {
+			entries = append(entries, CacheEntry{ID: item.ID, Name: item.Name})
+		}
 		cache := ItemCache{Items: entries}
 		if data, err := json.Marshal(cache); err == nil {
+			if s.Verbose {
+				fmt.Printf("\nSaving %d items to cache...\n", len(entries))
+			}
 			_ = os.MkdirAll(filepath.Dir(cachePath), 0755)
 			_ = os.WriteFile(cachePath, data, 0644)
 		}
 	}
 
-	if s.Verbose {
+	if s.Verbose && err == nil {
 		fmt.Println()
 	}
 

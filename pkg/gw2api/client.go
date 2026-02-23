@@ -141,10 +141,10 @@ func (c *Client) GetItemsWithProgress(ids []int, progress func(int, int)) ([]Ite
 			Get("/items")
 
 		if err != nil {
-			return nil, err
+			return allItems, err
 		}
 		if resp.IsError() {
-			return nil, fmt.Errorf("API error fetching items: %s", resp.Status())
+			return allItems, fmt.Errorf("API error fetching items: %s", resp.Status())
 		}
 		allItems = append(allItems, batchItems...)
 	}
