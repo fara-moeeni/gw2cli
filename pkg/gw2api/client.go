@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -16,8 +17,19 @@ type Client struct {
 }
 
 func NewClient(apiKey string) *Client {
+	r := resty.New().
+		SetBaseURL(BaseURL).
+		SetRetryCount(3).
+		SetRetryWaitTime(2 * time.Second).
+		SetRetryMaxWaitTime(10 * time.Second).
+		AddRetryCondition(
+			func(r *resty.Response, err error) bool {
+				return err != nil || r.StatusCode() >= 500 || r.StatusCode() == 429
+			},
+		)
+
 	return &Client{
-		rest:   resty.New().SetBaseURL(BaseURL),
+		rest:   r,
 		apiKey: apiKey,
 	}
 }

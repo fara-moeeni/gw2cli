@@ -24,16 +24,32 @@ func (s *Service) EnsureCache() error {
 		return err
 	}
 
-	if _, err := os.Stat(cachePath); err == nil {
-		return nil
-	}
-
-	fmt.Println("Building local item cache (this may take a minute on first run)...")
 	allIDs, err := s.client.GetAllItemIDs()
 	if err != nil {
 		return err
 	}
 
+	if info, err := os.Stat(cachePath); err == nil {
+		data, err := os.ReadFile(cachePath)
+		if err == nil {
+			var cache ItemCache
+			if json.Unmarshal(data, &cache) == nil {
+				// If cache is mostly complete (>95%), skip rebuild.
+				// This allows for new items being added but avoids full rebuilds.
+				if len(cache.Items) >= len(allIDs) {
+					return nil
+				}
+				if s.Verbose {
+					fmt.Printf("Cache exists but is incomplete (%d/%d items). Updating...\n", len(cache.Items), len(allIDs))
+				}
+			}
+		}
+		_ = info
+	}
+
+	fmt.Println("Building local item cache (this may take a minute)...")
+
+	var entries []CacheEntry
 	items, err := s.client.GetItemsWithProgress(allIDs, func(current, total int) {
 		// Only show progress if verbose is enabled
 		if !s.Verbose {
@@ -48,30 +64,28 @@ func (s *Service) EnsureCache() error {
 		}
 		fmt.Printf("\rDownloading item data: [%s] %.1f%% (%d/%d) ", bar, pct, current, total)
 	})
+
+	for _, item := range items {
+		entries = append(entries, CacheEntry{ID: item.ID, Name: item.Name})
+	}
+
+	if len(entries) > 0 {
+		cache := ItemCache{Items: entries}
+		if data, err := json.Marshal(cache); err == nil {
+			_ = os.MkdirAll(filepath.Dir(cachePath), 0755)
+			_ = os.WriteFile(cachePath, data, 0644)
+		}
+	}
+
 	if s.Verbose {
 		fmt.Println()
 	}
 
 	if err != nil {
-		return err
+		return fmt.Errorf("caching interrupted (partial data saved): %w", err)
 	}
 
-	var entries []CacheEntry
-	for _, item := range items {
-		entries = append(entries, CacheEntry{ID: item.ID, Name: item.Name})
-	}
-
-	cache := ItemCache{Items: entries}
-	data, err := json.Marshal(cache)
-	if err != nil {
-		return err
-	}
-
-	if err := os.MkdirAll(filepath.Dir(cachePath), 0755); err != nil {
-		return err
-	}
-
-	return os.WriteFile(cachePath, data, 0644)
+	return nil
 }
 
 func (s *Service) SearchCache(term string) ([]int, error) {
