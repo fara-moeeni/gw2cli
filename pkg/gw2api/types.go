@@ -37,6 +37,13 @@ type Character struct {
 
 type AccountInventory []*InventorySlot
 
+type MaterialStorageEntry struct {
+	ID       int    `json:"id"`
+	Category int    `json:"category"`
+	Binding  string `json:"binding,omitempty"`
+	Count    int    `json:"count"`
+}
+
 type WalletCurrency struct {
 	ID    int `json:"id"`
 	Value int `json:"value"`

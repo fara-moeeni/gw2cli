@@ -61,18 +61,20 @@ func (s *Service) FetchAll() ([]ItemDetail, error) {
 	var wg sync.WaitGroup
 	var shared gw2api.AccountInventory
 	var bank gw2api.AccountInventory
+	var materials []gw2api.MaterialStorageEntry
 	var characters []gw2api.Character
-	var errShared, errBank, errChars error
+	var errShared, errBank, errMaterials, errChars error
 
-	wg.Add(3)
+	wg.Add(4)
 	go func() { defer wg.Done(); shared, errShared = s.client.GetSharedInventory() }()
 	go func() { defer wg.Done(); bank, errBank = s.client.GetBank() }()
+	go func() { defer wg.Done(); materials, errMaterials = s.client.GetMaterials() }()
 	go func() { defer wg.Done(); characters, errChars = s.client.GetCharacters() }()
 	wg.Wait()
 
 	// Return error only if all fetches failed, otherwise partial results are acceptable
-	if errShared != nil && errBank != nil && errChars != nil {
-		return nil, fmt.Errorf("failed to fetch any data: %v, %v, %v", errShared, errBank, errChars)
+	if errShared != nil && errBank != nil && errMaterials != nil && errChars != nil {
+		return nil, fmt.Errorf("failed to fetch any data: %v, %v, %v, %v", errShared, errBank, errMaterials, errChars)
 	}
 
 	// Map ItemID -> List of Locations
@@ -100,6 +102,12 @@ func (s *Service) FetchAll() ([]ItemDetail, error) {
 	for i, slot := range bank {
 		if slot != nil {
 			add(slot.ID, slot.Count, "Bank", fmt.Sprintf("Tab %d", (i/30)+1))
+		}
+	}
+
+	for _, mat := range materials {
+		if mat.Count > 0 {
+			add(mat.ID, mat.Count, "Material Storage", "")
 		}
 	}
 

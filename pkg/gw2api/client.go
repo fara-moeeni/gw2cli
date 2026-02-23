@@ -55,6 +55,22 @@ func (c *Client) GetBank() (AccountInventory, error) {
 	return bank, nil
 }
 
+func (c *Client) GetMaterials() ([]MaterialStorageEntry, error) {
+	var materials []MaterialStorageEntry
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&materials).
+		Get("/account/materials")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return materials, nil
+}
+
 func (c *Client) GetCharacters() ([]Character, error) {
 	var characters []Character
 	// ids=all fetches full details for all characters in one go

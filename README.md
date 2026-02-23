@@ -1,10 +1,10 @@
 # GW2CLI - Guild Wars 2 Inventory Search Tool
 
-A fast and modular CLI tool written in Go to search your entire Guild Wars 2 account. It scans your **Bank**, **Shared Inventory Slots**, **Character Bags**, **Equipped Gear**, and **Account Wallet**.
+A fast and modular CLI tool written in Go to search your entire Guild Wars 2 account. It scans your **Bank**, **Shared Inventory Slots**, **Material Storage**, **Character Bags**, **Equipped Gear**, and **Account Wallet**.
 
 ## Features
 
-- 🔍 **Full Account Search**: Scans Bank, Shared Slots, and all Characters (Bags + Equipment).
+- 🔍 **Full Account Search**: Scans Bank, Shared Slots, Material Storage, and all Characters (Bags + Equipment).
 - 👤 **Character Management**: List all characters with level, profession, and playtime details.
 - 💰 **Wallet View**: Quickly view all account currencies and their values.
 - 🚀 **Fast**: Uses concurrent requests to fetch account data and parallel processing for item resolution.
