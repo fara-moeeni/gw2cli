@@ -173,3 +173,72 @@ func (c *Client) GetCurrencies(ids []int) ([]Currency, error) {
 	}
 	return currencies, nil
 }
+
+func (c *Client) GetCommerceDelivery() (*CommerceDelivery, error) {
+	var delivery CommerceDelivery
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&delivery).
+		Get("/commerce/delivery")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return &delivery, nil
+}
+
+func (c *Client) GetCommercePrices(ids []int) ([]CommercePrice, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	var list []string
+	for _, id := range ids {
+		list = append(list, strconv.Itoa(id))
+	}
+
+	var prices []CommercePrice
+	resp, err := c.rest.R().
+		SetQueryParam("ids", strings.Join(list, ",")).
+		SetResult(&prices).
+		Get("/commerce/prices")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return prices, nil
+}
+
+func (c *Client) GetCommerceTransactions(current bool, buys bool) ([]CommerceTransaction, error) {
+	path := "/commerce/transactions/"
+	if current {
+		path += "current/"
+	} else {
+		path += "history/"
+	}
+	if buys {
+		path += "buys"
+	} else {
+		path += "sells"
+	}
+
+	var txs []CommerceTransaction
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&txs).
+		Get(path)
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return txs, nil
+}

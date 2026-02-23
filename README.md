@@ -111,6 +111,18 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 ./gw2cli -list-characters
 ```
 
+**Check Trading Post delivery, orders, and history:**
+```bash
+./gw2cli -tp-delivery
+./gw2cli -tp-orders
+./gw2cli -tp-history
+```
+
+**Check Trading Post price for an item by ID or name:**
+```bash
+./gw2cli -tp-price 19684
+```
+
 ---
 
 ## Project Structure
