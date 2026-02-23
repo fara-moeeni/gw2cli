@@ -6,6 +6,7 @@ on:
       - main
     tags:
       - 'v*.*.*'
+      - '[0-9]*.[0-9]*.[0-9]*'
 
 permissions:
   contents: write
@@ -34,6 +35,12 @@ jobs:
           GOOS=darwin GOARCH=arm64 go build -o dist/gw2cli-darwin-arm64 cmd/gw2cli/main.go
           # Windows
           GOOS=windows GOARCH=amd64 go build -o dist/gw2cli-windows-amd64.exe cmd/gw2cli/main.go
+
+      - name: Update Latest Tag
+        if: github.ref_type != 'tag' && github.ref_name == 'main'
+        run: |
+          git tag -f latest
+          git push origin latest --force
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
