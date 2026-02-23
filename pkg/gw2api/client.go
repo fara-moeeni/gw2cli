@@ -105,7 +105,7 @@ func (c *Client) GetItems(ids []int) ([]Item, error) {
 	return c.GetItemsWithProgress(ids, nil)
 }
 
-func (c *Client) GetItemsWithProgress(ids []int, progress func(int, int)) ([]Item, error) {
+func (c *Client) GetItemsWithProgress(ids []int, progress func(int, int, []Item)) ([]Item, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -123,10 +123,6 @@ func (c *Client) GetItemsWithProgress(ids []int, progress func(int, int)) ([]Ite
 	batchSize := 200
 
 	for i := 0; i < len(list); i += batchSize {
-		if progress != nil {
-			progress(i, len(list))
-		}
-
 		end := i + batchSize
 		if end > len(list) {
 			end = len(list)
@@ -146,11 +142,12 @@ func (c *Client) GetItemsWithProgress(ids []int, progress func(int, int)) ([]Ite
 		if resp.IsError() {
 			return allItems, fmt.Errorf("API error fetching items: %s", resp.Status())
 		}
+		
 		allItems = append(allItems, batchItems...)
-	}
-
-	if progress != nil {
-		progress(len(list), len(list))
+		
+		if progress != nil {
+			progress(len(allItems), len(list), batchItems)
+		}
 	}
 
 	return allItems, nil

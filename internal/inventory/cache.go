@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"gw2cli/pkg/gw2api"
 )
 
 type CacheEntry struct {
@@ -29,60 +31,57 @@ func (s *Service) EnsureCache(force bool) error {
 		return err
 	}
 
-	exists := false
-	if _, err := os.Stat(cachePath); err == nil {
-		data, err := os.ReadFile(cachePath)
-		if err == nil {
-			var cache ItemCache
-			if json.Unmarshal(data, &cache) == nil {
-				if len(cache.Items) >= len(allIDs) {
-					if !force {
-						return nil
-					}
-					exists = true
-				}
-				if s.Verbose || force {
-					fmt.Printf("Cache exists but is incomplete (%d/%d items). Updating...\n", len(cache.Items), len(allIDs))
-				}
-			}
-		}
+	var currentCache ItemCache
+	if data, err := os.ReadFile(cachePath); err == nil {
+		_ = json.Unmarshal(data, &currentCache)
 	}
 
-	if !force && !exists {
+	if len(currentCache.Items) >= len(allIDs) && !force {
 		return nil
 	}
 
-	// Create directory before starting the long download
 	if err := os.MkdirAll(filepath.Dir(cachePath), 0755); err != nil {
 		return fmt.Errorf("failed to create cache directory: %w", err)
 	}
 
+	// Track existing IDs to avoid duplicates during resume
+	seen := make(map[int]bool)
+	for _, item := range currentCache.Items {
+		seen[item.ID] = true
+	}
+
+	// Filter IDs we still need to fetch
+	var missingIDs []int
+	for _, id := range allIDs {
+		if !seen[id] {
+			missingIDs = append(missingIDs, id)
+		}
+	}
+
+	if len(missingIDs) == 0 && !force {
+		return nil
+	}
+
 	fmt.Println("Building local item database...")
-	items, err := s.client.GetItemsWithProgress(allIDs, func(current, total int) {
-		pct := float64(current) / float64(total) * 100
+	_, err = s.client.GetItemsWithProgress(missingIDs, func(current, total int, newItems []gw2api.Item) {
+		for _, item := range newItems {
+			currentCache.Items = append(currentCache.Items, CacheEntry{ID: item.ID, Name: item.Name})
+		}
+
+		// Save to disk immediately
+		if data, errMarshal := json.Marshal(currentCache); errMarshal == nil {
+			_ = os.WriteFile(cachePath, data, 0644)
+		}
+
+		pct := float64(len(currentCache.Items)) / float64(len(allIDs)) * 100
 		barSize := 30
-		pos := int(float64(barSize) * (float64(current) / float64(total)))
+		pos := int(float64(barSize) * (float64(len(currentCache.Items)) / float64(len(allIDs))))
 		bar := strings.Repeat("=", pos)
 		if pos < barSize {
 			bar += ">" + strings.Repeat(" ", barSize-pos-1)
 		}
-		fmt.Printf("\rProgress: [%s] %.1f%% (%d/%d) ", bar, pct, current, total)
+		fmt.Printf("\rProgress: [%s] %.1f%% (%d/%d) ", bar, pct, len(currentCache.Items), len(allIDs))
 	})
-
-	if len(items) > 0 {
-		var entries []CacheEntry
-		for _, item := range items {
-			entries = append(entries, CacheEntry{ID: item.ID, Name: item.Name})
-		}
-		cache := ItemCache{Items: entries}
-		data, errMarshal := json.Marshal(cache)
-		if errMarshal != nil {
-			return fmt.Errorf("failed to encode cache: %w", errMarshal)
-		}
-		if errWrite := os.WriteFile(cachePath, data, 0644); errWrite != nil {
-			return fmt.Errorf("failed to write cache file: %w", errWrite)
-		}
-	}
 
 	fmt.Println()
 	if err != nil {
@@ -95,10 +94,6 @@ func (s *Service) EnsureCache(force bool) error {
 func (s *Service) SearchCache(term string) ([]int, error) {
 	cachePath, err := getCachePath()
 	if err != nil {
-		return nil, err
-	}
-
-	if _, err := os.Stat(cachePath); err != nil {
 		return nil, err
 	}
 
