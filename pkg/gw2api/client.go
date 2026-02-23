@@ -90,6 +90,10 @@ func (c *Client) GetCharacters() ([]Character, error) {
 }
 
 func (c *Client) GetItems(ids []int) ([]Item, error) {
+	return c.GetItemsWithProgress(ids, nil)
+}
+
+func (c *Client) GetItemsWithProgress(ids []int, progress func(int, int)) ([]Item, error) {
 	if len(ids) == 0 {
 		return nil, nil
 	}
@@ -103,11 +107,14 @@ func (c *Client) GetItems(ids []int) ([]Item, error) {
 		}
 	}
 
-	// Chunk requests to respect API limits (max ~200 ids per request)
 	var allItems []Item
 	batchSize := 200
 
 	for i := 0; i < len(list); i += batchSize {
+		if progress != nil {
+			progress(i, len(list))
+		}
+
 		end := i + batchSize
 		if end > len(list) {
 			end = len(list)
@@ -128,6 +135,10 @@ func (c *Client) GetItems(ids []int) ([]Item, error) {
 			return nil, fmt.Errorf("API error fetching items: %s", resp.Status())
 		}
 		allItems = append(allItems, batchItems...)
+	}
+
+	if progress != nil {
+		progress(len(list), len(list))
 	}
 
 	return allItems, nil

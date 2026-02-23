@@ -26,6 +26,7 @@ func main() {
 	tpOrdersFlag := flag.Bool("tp-orders", false, "Show active Trading Post orders")
 	tpHistoryFlag := flag.Bool("tp-history", false, "Show past Trading Post transactions")
 	tpPriceFlag := flag.String("tp-price", "", "Check current Trading Post prices")
+	verboseFlag := flag.Bool("verbose", false, "Enable verbose output")
 	helpFlag := flag.Bool("help", false, "Show help")
 	flag.Parse()
 
@@ -55,7 +56,7 @@ func main() {
 		case "-tp-history":
 			*tpHistoryFlag = true
 			*itemFlag = ""
-		case "-type", "-character", "-tp-price", "-help":
+		case "-type", "-character", "-tp-price", "-verbose", "-help":
 			log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
 		}
 	}
@@ -69,6 +70,9 @@ func main() {
 	if strings.HasPrefix(*tpPriceFlag, "-") {
 		log.Fatalf("Error: Flag provided as value for -tp-price. Usage: ./gw2cli -tp-price <name or ID>")
 	}
+	if *verboseFlag {
+		os.Stdout.WriteString("Verbose mode enabled.\n")
+	}
 
 	if strings.ToLower(*typeFlag) == "help" || strings.ToLower(*itemFlag) == "help" || strings.ToLower(*charFlag) == "help" {
 		ui.PrintGlobalHelp()
@@ -81,6 +85,7 @@ func main() {
 	}
 	client := gw2api.NewClient(apiKey)
 	invService := inventory.NewService(client)
+	invService.Verbose = *verboseFlag
 
 	if *listCharsFlag {
 		fmt.Println("Fetching character list...")

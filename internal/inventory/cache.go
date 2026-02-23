@@ -34,7 +34,24 @@ func (s *Service) EnsureCache() error {
 		return err
 	}
 
-	items, err := s.client.GetItems(allIDs)
+	items, err := s.client.GetItemsWithProgress(allIDs, func(current, total int) {
+		// Only show progress if verbose is enabled
+		if !s.Verbose {
+			return
+		}
+		pct := float64(current) / float64(total) * 100
+		barSize := 30
+		pos := int(float64(barSize) * (float64(current) / float64(total)))
+		bar := strings.Repeat("=", pos)
+		if pos < barSize {
+			bar += ">" + strings.Repeat(" ", barSize-pos-1)
+		}
+		fmt.Printf("\rDownloading item data: [%s] %.1f%% (%d/%d) ", bar, pct, current, total)
+	})
+	if s.Verbose {
+		fmt.Println()
+	}
+
 	if err != nil {
 		return err
 	}
