@@ -8,7 +8,7 @@ import (
 
 func PrintGlobalHelp() {
 	fmt.Println(`
-GW2CLI - Guild Wars 2 Inventory Search Tool (v1.3.0)
+GW2CLI - Guild Wars 2 Inventory Search Tool (v1.4.0)
 
 Usage:
   ./gw2cli [flags] [search terms]
@@ -29,6 +29,10 @@ Options:
   -character <name/loc>
         Search by Character Name or Location (e.g., 'Bank').
         Use '-character help' for more details.
+
+  -find <term>
+        Search for an item in the local database by name.
+        Requires the item cache to be built.
 
   -list-types
         List all unique item types found in your inventory.
@@ -61,7 +65,7 @@ Options:
   -exchange-gems <amount>
         How many coins can you get for <amount> gems.
 
-  -build-cache
+  -update-cache
         Build or update the local item database for game-wide name search.
         This may take a few minutes depending on API limits.
 
@@ -210,5 +214,15 @@ func PrintExchangeRateSingle(rate *inventory.ExchangeRate, fromGems bool) {
 		fmt.Printf("%d Gems buys: %s (%s/gem)\n", rate.Quantity, FormatCoin(rate.Result), FormatCoin(rate.CoinsPerGem))
 	} else {
 		fmt.Printf("%s buys: %d Gems (%s/gem)\n", FormatCoin(rate.Quantity), rate.Result, FormatCoin(rate.CoinsPerGem))
+	}
+}
+
+func PrintCacheResults(items []inventory.CacheEntry) {
+	if len(items) == 0 {
+		return
+	}
+
+	for _, item := range items {
+		fmt.Printf("ID: %-8d Name: %-35s Type: %s\n", item.ID, item.Name, item.Type)
 	}
 }

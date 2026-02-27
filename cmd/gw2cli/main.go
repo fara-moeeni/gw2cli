@@ -12,97 +12,111 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "1.3.0"
+const Version = "1.4.0"
 
 func main() {
-	flag.Usage = ui.PrintGlobalHelp
-	itemFlag := flag.String("item", "", "Search by Item Name or ID")
-	typeFlag := flag.String("type", "", "Filter by strict Item Type")
-	charFlag := flag.String("character", "", "Search by Character Name or Location")
-	listTypesFlag := flag.Bool("list-types", false, "List all unique item types")
-	listCharsFlag := flag.Bool("list-characters", false, "List all characters")
-	walletFlag := flag.Bool("wallet", false, "Show account wallet")
-	tpDeliveryFlag := flag.Bool("tp-delivery", false, "Show pending Trading Post deliveries")
-	tpOrdersFlag := flag.Bool("tp-orders", false, "Show active Trading Post orders")
-	tpHistoryFlag := flag.Bool("tp-history", false, "Show past Trading Post transactions")
-	        tpPriceFlag := flag.String("tp-price", "", "Check current Trading Post prices")
-	        exchangeFlag := flag.Bool("exchange", false, "Show current gem/coin exchange rates")
-	        exchangeCoinsFlag := flag.Int("exchange-coins", 0, "Amount of coins to exchange for gems")
-	        exchangeGemsFlag := flag.Int("exchange-gems", 0, "Amount of gems to exchange for coins")
-	        buildCacheFlag := flag.Bool("build-cache", false, "Build/update local item database for name search")
-	
-	verboseFlag := flag.Bool("verbose", false, "Enable verbose output")
-	helpFlag := flag.Bool("help", false, "Show help")
-	flag.Parse()
+        flag.Usage = ui.PrintGlobalHelp
+        itemFlag := flag.String("item", "", "Search by Item Name or ID")
+        typeFlag := flag.String("type", "", "Filter by strict Item Type")
+        charFlag := flag.String("character", "", "Search by Character Name or Location")
+        listTypesFlag := flag.Bool("list-types", false, "List all unique item types")
+        listCharsFlag := flag.Bool("list-characters", false, "List all characters")
+        walletFlag := flag.Bool("wallet", false, "Show account wallet")
+        tpDeliveryFlag := flag.Bool("tp-delivery", false, "Show pending Trading Post deliveries")
+        tpOrdersFlag := flag.Bool("tp-orders", false, "Show active Trading Post orders")
+        tpHistoryFlag := flag.Bool("tp-history", false, "Show past Trading Post transactions")
+        tpPriceFlag := flag.String("tp-price", "", "Check current Trading Post prices")
+        exchangeFlag := flag.Bool("exchange", false, "Show current gem/coin exchange rates")
+        exchangeCoinsFlag := flag.Int("exchange-coins", 0, "Amount of coins to exchange for gems")
+        exchangeGemsFlag := flag.Int("exchange-gems", 0, "Amount of gems to exchange for coins")
+        updateCacheFlag := flag.Bool("update-cache", false, "Update local item database")
+        findFlag := flag.String("find", "", "Search for items in local database by name")
 
-	if *helpFlag {
-		ui.PrintGlobalHelp()
-		return
-	}
+        verboseFlag := flag.Bool("verbose", false, "Enable verbose output")
+        helpFlag := flag.Bool("help", false, "Show help")
+        flag.Parse()
 
-	// Correct flag parsing edge cases where flags are consumed as values
-	if strings.HasPrefix(*itemFlag, "-") {
-		switch *itemFlag {
-		case "-list-types":
-			*listTypesFlag = true
-			*itemFlag = ""
-		case "-list-characters":
-			*listCharsFlag = true
-			*itemFlag = ""
-		case "-wallet":
-			*walletFlag = true
-			*itemFlag = ""
-		case "-tp-delivery":
-			*tpDeliveryFlag = true
-			*itemFlag = ""
-		case "-tp-orders":
-			*tpOrdersFlag = true
-			*itemFlag = ""
-		case "-tp-history":
-			*tpHistoryFlag = true
-			*itemFlag = ""
-		case "-type", "-character", "-tp-price", "-build-cache", "-verbose", "-help":
-			log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
-		}
-	}
+        if *helpFlag {
+                ui.PrintGlobalHelp()
+                return
+        }
 
-	if strings.HasPrefix(*typeFlag, "-") {
-		log.Fatalf("Error: Flag provided as value for -type. Usage: ./gw2cli -type <category>")
-	}
-	if strings.HasPrefix(*charFlag, "-") {
-		log.Fatalf("Error: Flag provided as value for -character. Usage: ./gw2cli -character <name>")
-	}
-	if strings.HasPrefix(*tpPriceFlag, "-") {
-		log.Fatalf("Error: Flag provided as value for -tp-price. Usage: ./gw2cli -tp-price <name or ID>")
-	}
-	if *verboseFlag {
-		os.Stdout.WriteString("Verbose mode enabled.\n")
-	}
+        // Correct flag parsing edge cases where flags are consumed as values
+        if strings.HasPrefix(*itemFlag, "-") {
+                switch *itemFlag {
+                case "-list-types":
+                        *listTypesFlag = true
+                        *itemFlag = ""
+                case "-list-characters":
+                        *listCharsFlag = true
+                        *itemFlag = ""
+                case "-wallet":
+                        *walletFlag = true
+                        *itemFlag = ""
+                case "-tp-delivery":
+                        *tpDeliveryFlag = true
+                        *itemFlag = ""
+                case "-tp-orders":
+                        *tpOrdersFlag = true
+                        *itemFlag = ""
+                case "-tp-history":
+                        *tpHistoryFlag = true
+                        *itemFlag = ""
+                case "-type", "-character", "-tp-price", "-verbose", "-help", "-update-cache", "-find":
+                        log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
+                }
+        }
 
-	if strings.ToLower(*typeFlag) == "help" || strings.ToLower(*itemFlag) == "help" || strings.ToLower(*charFlag) == "help" {
-		ui.PrintGlobalHelp()
-		return
-	}
+        if strings.HasPrefix(*typeFlag, "-") {
+                log.Fatalf("Error: Flag provided as value for -type. Usage: ./gw2cli -type <category>")
+        }
+        if strings.HasPrefix(*charFlag, "-") {
+                log.Fatalf("Error: Flag provided as value for -character. Usage: ./gw2cli -character <name>")
+        }
+        if strings.HasPrefix(*tpPriceFlag, "-") {
+                log.Fatalf("Error: Flag provided as value for -tp-price. Usage: ./gw2cli -tp-price <name or ID>")
+        }
+        if strings.HasPrefix(*findFlag, "-") {
+                log.Fatalf("Error: Flag provided as value for -find. Usage: ./gw2cli -find <term>")
+        }
 
-	apiKey := os.Getenv("GW2_API_KEY")
-	if apiKey == "" {
-		log.Fatal("Please set the GW2_API_KEY environment variable")
-	}
-	client := gw2api.NewClient(apiKey)
-	invService := inventory.NewService(client)
-	invService.Verbose = *verboseFlag
-	invService.BuildCache = *buildCacheFlag
+        if strings.ToLower(*typeFlag) == "help" || strings.ToLower(*itemFlag) == "help" || strings.ToLower(*charFlag) == "help" {
+                ui.PrintGlobalHelp()
+                return
+        }
 
-	if *buildCacheFlag {
-		fmt.Println("Note: Building the local database fetches ~70,000 items. Performance depends")
-		fmt.Println("on your internet bandwidth, GW2 API rate limits, and server performance.")
-		if err := invService.EnsureCache(true); err != nil {
-			log.Fatalf("Error building cache: %v", err)
-		}
-		fmt.Println("Local item database is ready.")
-		return
-	}
+        apiKey := os.Getenv("GW2_API_KEY")
+        client := gw2api.NewClient(apiKey)
+        invService := inventory.NewService(client)
+        invService.Verbose = *verboseFlag
 
+        // Global cache status check
+        _ = invService.CheckCacheStatus()
+
+        if *updateCacheFlag {
+                if err := invService.EnsureCache(true); err != nil {
+                        log.Fatalf("Error updating cache: %v", err)
+                }
+                return
+        }
+
+        if *findFlag != "" {
+                matches, err := invService.FindInCache(*findFlag)
+                if err != nil {
+                        log.Fatalf("Error searching cache: %v", err)
+                }
+                if len(matches) == 0 {
+                        fmt.Printf("no items found matching \"%s\"\n", *findFlag)
+                        return
+                }
+                ui.PrintCacheResults(matches)
+                return
+        }
+
+        // Auth-required check
+        if apiKey == "" {
+                log.Fatal("Please set the GW2_API_KEY environment variable")
+        }
 	if *listCharsFlag {
 		fmt.Println("Fetching character list...")
 		chars, err := invService.GetCharacterList()

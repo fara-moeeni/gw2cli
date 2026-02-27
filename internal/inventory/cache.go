@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
+	"time"
 
 	"gw2cli/pkg/gw2api"
 )
@@ -14,6 +14,7 @@ import (
 type CacheEntry struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type ItemCache struct {
@@ -21,7 +22,7 @@ type ItemCache struct {
 }
 
 func (s *Service) EnsureCache(force bool) error {
-	cachePath, err := getCachePath()
+	cachePath, err := GetCachePath()
 	if err != nil {
 		return err
 	}
@@ -62,10 +63,15 @@ func (s *Service) EnsureCache(force bool) error {
 		return nil
 	}
 
-	fmt.Println("Building local item database...")
+	fmt.Println("fetching item list...")
+	fmt.Println("resolving names...")
 	_, err = s.client.GetItemsWithProgress(missingIDs, func(current, total int, newItems []gw2api.Item) {
 		for _, item := range newItems {
-			currentCache.Items = append(currentCache.Items, CacheEntry{ID: item.ID, Name: item.Name})
+			currentCache.Items = append(currentCache.Items, CacheEntry{
+				ID:   item.ID,
+				Name: item.Name,
+				Type: item.Type,
+			})
 		}
 
 		// Save to disk immediately
@@ -83,7 +89,7 @@ func (s *Service) EnsureCache(force bool) error {
 		fmt.Printf("\rProgress: [%s] %.1f%% (%d/%d) ", bar, pct, len(currentCache.Items), len(allIDs))
 	})
 
-	fmt.Println()
+	fmt.Printf("\ndone. cached %d items to %s\n", len(currentCache.Items), cachePath)
 	if err != nil {
 		return fmt.Errorf("caching interrupted: %w", err)
 	}
@@ -92,7 +98,23 @@ func (s *Service) EnsureCache(force bool) error {
 }
 
 func (s *Service) SearchCache(term string) ([]int, error) {
-	cachePath, err := getCachePath()
+	cache, err := s.LoadCache()
+	if err != nil {
+		return nil, err
+	}
+
+	term = strings.ToLower(term)
+	var ids []int
+	for _, item := range cache.Items {
+		if strings.Contains(strings.ToLower(item.Name), term) {
+			ids = append(ids, item.ID)
+		}
+	}
+	return ids, nil
+}
+
+func (s *Service) LoadCache() (*ItemCache, error) {
+	cachePath, err := GetCachePath()
 	if err != nil {
 		return nil, err
 	}
@@ -107,40 +129,50 @@ func (s *Service) SearchCache(term string) ([]int, error) {
 		return nil, err
 	}
 
-	term = strings.ToLower(term)
-	var ids []int
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-
-	numWorkers := 4
-	chunkSize := (len(cache.Items) + numWorkers - 1) / numWorkers
-
-	for i := 0; i < len(cache.Items); i += chunkSize {
-		wg.Add(1)
-		go func(start int) {
-			defer wg.Done()
-			end := start + chunkSize
-			if end > len(cache.Items) {
-				end = len(cache.Items)
-			}
-			for _, item := range cache.Items[start:end] {
-				if strings.Contains(strings.ToLower(item.Name), term) {
-					mu.Lock()
-					ids = append(ids, item.ID)
-					mu.Unlock()
-				}
-			}
-		}(i)
-	}
-	wg.Wait()
-
-	return ids, nil
+	return &cache, nil
 }
 
-func getCachePath() (string, error) {
+func (s *Service) CheckCacheStatus() error {
+	cachePath, err := GetCachePath()
+	if err != nil {
+		return err
+	}
+
+	info, err := os.Stat(cachePath)
+	if os.IsNotExist(err) {
+		return fmt.Errorf("item cache not found, run -update-cache to build it")
+	}
+	if err != nil {
+		return err
+	}
+
+	if time.Since(info.ModTime()) > 7*24*time.Hour {
+		fmt.Println("warning: item cache is 7+ days old, run -update-cache to refresh")
+	}
+
+	return nil
+}
+
+func (s *Service) FindInCache(term string) ([]CacheEntry, error) {
+	cache, err := s.LoadCache()
+	if err != nil {
+		return nil, err
+	}
+
+	term = strings.ToLower(term)
+	var matches []CacheEntry
+	for _, item := range cache.Items {
+		if strings.Contains(strings.ToLower(item.Name), term) {
+			matches = append(matches, item)
+		}
+	}
+	return matches, nil
+}
+
+func GetCachePath() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".gw2cli", "items.json"), nil
+	return filepath.Join(home, ".config", "gw2cli", "items.json"), nil
 }
