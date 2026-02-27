@@ -130,6 +130,15 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 ./gw2cli -exchange-coins 1000000
 ```
 
+**Build and search the local item database (required for name-based searches):**
+```bash
+# First time setup or to refresh
+./gw2cli -update-cache
+
+# Search for any game item by name
+./gw2cli -find "Twilight"
+```
+
 ---
 
 ## Project Structure
