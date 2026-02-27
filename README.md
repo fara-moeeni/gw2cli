@@ -123,6 +123,13 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 ./gw2cli -tp-price 19684
 ```
 
+**Check current Gem/Coin exchange rates:**
+```bash
+./gw2cli -exchange
+./gw2cli -exchange-gems 100
+./gw2cli -exchange-coins 1000000
+```
+
 ---
 
 ## Project Structure

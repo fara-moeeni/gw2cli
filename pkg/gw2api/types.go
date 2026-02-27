@@ -86,3 +86,8 @@ type CommerceTransaction struct {
 	Created   string    `json:"created"`
 	Purchased string    `json:"purchased,omitempty"`
 }
+
+type CommerceExchange struct {
+	CoinsPerGem int `json:"coins_per_gem"`
+	Quantity    int `json:"quantity"`
+}

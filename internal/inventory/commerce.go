@@ -35,6 +35,12 @@ type CommerceTransaction struct {
 	Purchased string
 }
 
+type ExchangeRate struct {
+	Quantity    int
+	Result      int
+	CoinsPerGem int
+}
+
 func (s *Service) GetDelivery() (*CommerceDelivery, error) {
 	apiDelivery, err := s.client.GetCommerceDelivery()
 	if err != nil {
@@ -190,4 +196,25 @@ func (s *Service) GetTransactions(current bool) ([]CommerceTransaction, []Commer
 	}
 
 	return mapTx(buys), mapTx(sells), nil
+}
+
+func (s *Service) GetExchangeRate(quantity int, fromGems bool) (*ExchangeRate, error) {
+	var apiRes *gw2api.CommerceExchange
+	var err error
+
+	if fromGems {
+		apiRes, err = s.client.GetGemsToCoins(quantity)
+	} else {
+		apiRes, err = s.client.GetCoinsToGems(quantity)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &ExchangeRate{
+		Quantity:    quantity,
+		Result:      apiRes.Quantity,
+		CoinsPerGem: apiRes.CoinsPerGem,
+	}, nil
 }

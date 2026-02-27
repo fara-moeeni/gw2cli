@@ -277,3 +277,35 @@ func (c *Client) GetCommerceTransactions(current bool, buys bool) ([]CommerceTra
 	}
 	return txs, nil
 }
+
+func (c *Client) GetCoinsToGems(quantity int) (*CommerceExchange, error) {
+	var exchange CommerceExchange
+	resp, err := c.rest.R().
+		SetQueryParam("quantity", strconv.Itoa(quantity)).
+		SetResult(&exchange).
+		Get("/commerce/exchange/coins")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return &exchange, nil
+}
+
+func (c *Client) GetGemsToCoins(quantity int) (*CommerceExchange, error) {
+	var exchange CommerceExchange
+	resp, err := c.rest.R().
+		SetQueryParam("quantity", strconv.Itoa(quantity)).
+		SetResult(&exchange).
+		Get("/commerce/exchange/gems")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return &exchange, nil
+}
