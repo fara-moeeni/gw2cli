@@ -8,3 +8,4 @@ gw2cli
 .env
 *.env
 .vscode/
+dist/

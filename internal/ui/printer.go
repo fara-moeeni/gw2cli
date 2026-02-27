@@ -8,7 +8,7 @@ import (
 
 func PrintGlobalHelp() {
 	fmt.Println(`
-GW2CLI - Guild Wars 2 Inventory Search Tool (v1.2.0)
+GW2CLI - Guild Wars 2 Inventory Search Tool (v1.3.0)
 
 Usage:
   ./gw2cli [flags] [search terms]
@@ -51,6 +51,15 @@ Options:
   -tp-price <item name or ID>
         Look up the current buy and sell price for a specific item.
         If the local database is missing, it will fallback to items you own.
+
+  -exchange
+        Show current gem/coin exchange rates.
+
+  -exchange-coins <amount>
+        How many gems can you buy with <amount> coins (in copper).
+
+  -exchange-gems <amount>
+        How many coins can you get for <amount> gems.
 
   -build-cache
         Build or update the local item database for game-wide name search.
@@ -186,5 +195,20 @@ func PrintTPTransactions(buys, sells []inventory.CommerceTransaction, current bo
 		for _, tx := range sells {
 			fmt.Printf(" - %-30s x%-3d at %s\n", tx.Name, tx.Quantity, FormatCoin(tx.Price))
 		}
+	}
+}
+
+func PrintExchangeRate(gemsToCoins, coinsToGems *inventory.ExchangeRate) {
+	fmt.Println("\n--- Current Gem Exchange Rates ---")
+	fmt.Printf("%d Gems buys: %s (%s/gem)\n", gemsToCoins.Quantity, FormatCoin(gemsToCoins.Result), FormatCoin(gemsToCoins.CoinsPerGem))
+	fmt.Printf("%s buys: %d Gems (%s/gem)\n", FormatCoin(coinsToGems.Quantity), coinsToGems.Result, FormatCoin(coinsToGems.CoinsPerGem))
+}
+
+func PrintExchangeRateSingle(rate *inventory.ExchangeRate, fromGems bool) {
+	fmt.Println("\n--- Gem Exchange Rate ---")
+	if fromGems {
+		fmt.Printf("%d Gems buys: %s (%s/gem)\n", rate.Quantity, FormatCoin(rate.Result), FormatCoin(rate.CoinsPerGem))
+	} else {
+		fmt.Printf("%s buys: %d Gems (%s/gem)\n", FormatCoin(rate.Quantity), rate.Result, FormatCoin(rate.CoinsPerGem))
 	}
 }

@@ -12,7 +12,7 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "1.2.0"
+const Version = "1.3.0"
 
 func main() {
 	flag.Usage = ui.PrintGlobalHelp
@@ -25,8 +25,12 @@ func main() {
 	tpDeliveryFlag := flag.Bool("tp-delivery", false, "Show pending Trading Post deliveries")
 	tpOrdersFlag := flag.Bool("tp-orders", false, "Show active Trading Post orders")
 	tpHistoryFlag := flag.Bool("tp-history", false, "Show past Trading Post transactions")
-	tpPriceFlag := flag.String("tp-price", "", "Check current Trading Post prices")
-	buildCacheFlag := flag.Bool("build-cache", false, "Build/update local item database for name search")
+	        tpPriceFlag := flag.String("tp-price", "", "Check current Trading Post prices")
+	        exchangeFlag := flag.Bool("exchange", false, "Show current gem/coin exchange rates")
+	        exchangeCoinsFlag := flag.Int("exchange-coins", 0, "Amount of coins to exchange for gems")
+	        exchangeGemsFlag := flag.Int("exchange-gems", 0, "Amount of gems to exchange for coins")
+	        buildCacheFlag := flag.Bool("build-cache", false, "Build/update local item database for name search")
+	
 	verboseFlag := flag.Bool("verbose", false, "Enable verbose output")
 	helpFlag := flag.Bool("help", false, "Show help")
 	flag.Parse()
@@ -149,18 +153,52 @@ func main() {
 	                return
 	        }
 	
-	        if *tpPriceFlag != "" {
-	                fmt.Println("Fetching TP prices...")
-	                prices, err := invService.GetPrices(*tpPriceFlag)
-	                if err != nil {
-	                        log.Fatalf("Error fetching TP prices: %v", err)
-	                }
-	                ui.PrintTPPrice(prices)
-	                return
-	        }
-		os.Stdout.WriteString("Fetching account data...\n")
-
-	allItems, err := invService.FetchAll()
+	                        if *tpPriceFlag != "" {
+	                                fmt.Println("Fetching TP prices...")
+	                                prices, err := invService.GetPrices(*tpPriceFlag)
+	                                if err != nil {
+	                                        log.Fatalf("Error fetching TP prices: %v", err)
+	                                }
+	                                ui.PrintTPPrice(prices)
+	                                return
+	                        }
+	        
+	                        if *exchangeFlag {
+	                                fmt.Println("Fetching current exchange rates...")
+	                                g2c, err := invService.GetExchangeRate(100, true)
+	                                if err != nil {
+	                                        log.Fatalf("Error fetching gem exchange: %v", err)
+	                                }
+	                                c2g, err := invService.GetExchangeRate(1000000, false) // 100g
+	                                if err != nil {
+	                                        log.Fatalf("Error fetching coin exchange: %v", err)
+	                                }
+	                                ui.PrintExchangeRate(g2c, c2g)
+	                                return
+	                        }
+	        
+	                        if *exchangeGemsFlag > 0 {
+	                                fmt.Printf("Calculating exchange for %d gems...\n", *exchangeGemsFlag)
+	                                rate, err := invService.GetExchangeRate(*exchangeGemsFlag, true)
+	                                if err != nil {
+	                                        log.Fatalf("Error fetching exchange: %v", err)
+	                                }
+	                                ui.PrintExchangeRateSingle(rate, true)
+	                                return
+	                        }
+	        
+	                        if *exchangeCoinsFlag > 0 {
+	                                fmt.Printf("Calculating exchange for %s...\n", ui.FormatCoin(*exchangeCoinsFlag))
+	                                rate, err := invService.GetExchangeRate(*exchangeCoinsFlag, false)
+	                                if err != nil {
+	                                        log.Fatalf("Error fetching exchange: %v", err)
+	                                }
+	                                ui.PrintExchangeRateSingle(rate, false)
+	                                return
+	                        }
+	        
+	                        os.Stdout.WriteString("Fetching account data...\n")
+	        	allItems, err := invService.FetchAll()
 	if err != nil {
 		log.Fatalf("Error fetching inventory: %v", err)
 	}
