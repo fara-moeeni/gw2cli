@@ -24,6 +24,20 @@ cd gw2cli
 make build
 ```
 
+### Manual (man) Pages (Linux/macOS)
+
+You can generate and install a `man` page for `gw2cli` to access offline documentation.
+
+**Generate the man page (requires `go-md2man`):**
+```bash
+# Install tool if missing
+go install github.com/cpuguy83/go-md2man/v2@latest
+
+# Generate and install (requires sudo for /usr/local/share/man/man1/)
+make man
+sudo make install
+```
+
 ### Build from Source (Windows)
 
 Using **PowerShell**:
@@ -54,6 +68,7 @@ Export your API key as an environment variable:
 **Linux/macOS (Bash/Zsh):**
 ```bash
 export GW2_API_KEY="YOUR_API_KEY_HERE"
+man gw2cli # View full documentation (if installed)
 ```
 
 **Windows (PowerShell):**
