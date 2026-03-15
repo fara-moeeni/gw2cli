@@ -12,7 +12,7 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "1.4.0"
+const Version = "1.5.0"
 
 func main() {
         flag.Usage = ui.PrintGlobalHelp
