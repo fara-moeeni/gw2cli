@@ -85,73 +85,50 @@ set GW2_API_KEY=YOUR_API_KEY_HERE
 
 Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with `.\gw2cli.exe` in PowerShell or `gw2cli.exe` in Command Prompt.
 
-**List all items across your entire account:**
+**Search for an item across your entire account:**
 ```bash
-# Linux/macOS
-./gw2cli
-
-# Windows (PowerShell)
-.\gw2cli.exe
+./gw2cli search "mystic coin"
+./gw2cli search sword -type Weapon
+./gw2cli search -character "MyWarrior"
 ```
 
-**Search for a specific item (by name, type, or ID):**
+**List account information:**
 ```bash
-./gw2cli sword
-./gw2cli -item "mystic coin"
-./gw2cli -item 19976
+./gw2cli list characters
+./gw2cli list types
 ```
 
-**Filter items by type or character:**
+**Show account wallet (Gold, Gems, Karma, etc.):**
 ```bash
-./gw2cli -item "mystic coin" -character "MyWarrior"
-./gw2cli -type Weapon
-```
-
-**List all unique item types currently in your inventory:**
-```bash
-./gw2cli -list-types
-```
-
-**Show all assets in your account wallet (Gold, Gems, Karma, etc.):**
-```bash
-# Linux/macOS
-./gw2cli -wallet
-
-# Windows (PowerShell)
-.\gw2cli.exe -wallet
-```
-
-**List all characters on your account with details:**
-```bash
-./gw2cli -list-characters
+./gw2cli wallet
 ```
 
 **Check Trading Post delivery, orders, and history:**
 ```bash
-./gw2cli -tp-delivery
-./gw2cli -tp-orders
-./gw2cli -tp-history
+./gw2cli tp delivery
+./gw2cli tp orders
+./gw2cli tp history
 ```
 
-**Check Trading Post price for an item by ID or name:**
+**Check Trading Post price for an item:**
 ```bash
-./gw2cli -tp-price 19684
+./gw2cli tp price "Mystic Coin"
 ```
 
 **Check current Gem/Coin exchange rates:**
 ```bash
-./gw2cli -exchange
-./gw2cli -exchange-gems 100
-./gw2cli -exchange-coins 1000000
+./gw2cli exchange
+./gw2cli exchange gems 400
+./gw2cli exchange coins 1000000
 ```
 
-**Build and search the local item database (required for name-based searches):**
+**Build and search the local item database:**
 ```bash
-# First time setup or to refresh
-./gw2cli -update-cache
+# Build/Refresh cache
+./gw2cli cache update
 
-# Search for any game item by name
-./gw2cli -find "Twilight"
+# Offline name-based search
+./gw2cli cache find "Twilight"
 ```
 
 ---
