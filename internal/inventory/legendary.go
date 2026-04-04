@@ -21,7 +21,7 @@ func (s *Service) GetLegendaryArmory(term string) ([]LegendaryItem, error) {
 	cache, err := s.LoadCache()
 	if err != nil {
 		// According to requirements, standard cache error
-		return nil, fmt.Errorf("item cache not found, run -update-cache to build it")
+		return nil, fmt.Errorf("item cache not found, run 'cache update' to build it")
 	}
 
 	cacheMap := make(map[int]CacheEntry)
