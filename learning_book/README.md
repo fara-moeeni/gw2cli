@@ -6,6 +6,12 @@ As the project evolves, new chapters will be added here to document architectura
 
 ## Chapters
 
+### The Go Crash Course (For Beginners)
+0. [Go Crash Course](00_go_crash_course.md) - Basic syntax, variables, collections, and structs.
+0.1. [Pointers & References](00_1_pointers_and_references.md) - Memory addresses, passing by reference, and why the `flag` package uses them.
+0.2. [Interfaces & Errors](00_2_interfaces_and_errors.md) - Understanding interfaces, polymorphism, and how Go handles errors.
+
+### Building GW2CLI
 1. [Basics & API Clients](01_basics_and_api.md) - Go modules, Structs, JSON, and HTTP requests.
 2. [Concurrency](02_concurrency.md) - Goroutines, WaitGroups, and speeding up API calls.
 3. [CLI Flags & Formatting](03_cli_flags_and_formatting.md) - The standard `flag` package and console output.
