@@ -140,14 +140,14 @@ func (s *Service) CheckCacheStatus() error {
 
 	info, err := os.Stat(cachePath)
 	if os.IsNotExist(err) {
-		return fmt.Errorf("item cache not found, run -update-cache to build it")
+		return fmt.Errorf("item cache not found, run 'cache update' to build it")
 	}
 	if err != nil {
 		return err
 	}
 
 	if time.Since(info.ModTime()) > 7*24*time.Hour {
-		fmt.Println("warning: item cache is 7+ days old, run -update-cache to refresh")
+		fmt.Println("warning: item cache is 7+ days old, run 'cache update' to refresh")
 	}
 
 	return nil

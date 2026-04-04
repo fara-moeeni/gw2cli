@@ -4,98 +4,112 @@
 gw2cli \- A command-line interface for the Guild Wars 2 API.
 
 .SH SYNOPSIS
-\fBgw2cli\fP [FLAGS] [SEARCH_TERM]
+\fBgw2cli\fP <COMMAND> [ARGUMENTS] [FLAGS]
 
 .SH DESCRIPTION
-\fBgw2cli\fP provides a fast, terminal-based interface to manage your Guild Wars 2 account. It supports searching through your bank, shared inventory, and character inventories, as well as checking Trading Post prices, wallet balances, and currency exchange rates.
+\fBgw2cli\fP provides a fast, terminal-based interface to manage your Guild Wars 2 account. It uses a subcommand architecture to organize its various features, including inventory search, character listing, Trading Post management, and currency exchange.
 
 .PP
 The tool uses a local item cache to provide fast offline searching and to resolve item names to IDs.
 
-.SH OPTIONS
-.SS General Flags
-\fB-help\fP
-    Show the help message and exit.
-
-.PP
+.SH GLOBAL OPTIONS
 \fB-verbose\fP
     Enable verbose output for debugging and detailed progress tracking.
 
 .PP
-\fB-update-cache\fP
-    Fetch and update the local item database from the GW2 API. Recommended to run once a week.
+\fB-help\fP
+    Show the global help message and exit.
 
 .PP
-\fB-find\fP \fITERM\fP
-    Search for items in the local database by name without calling the API.
+\fBversion\fP
+    Show the version information and exit.
 
-.SS Account & Character Flags
-\fB-list-characters\fP
-    List all characters on the account with their level, profession, and total playtime.
+.SH COMMANDS
 
-.PP
-\fB-wallet\fP
-    Show the account's wallet (Gold, Gems, Karma, etc.).
-
-.PP
-\fB-character\fP \fINAME\fP
-    Filter search results to a specific character.
-
-.SS Inventory & Search
-\fB-item\fP \fITERM\fP
-    Search for an item by name or ID across all account inventories.
+.SS search [TERM] [FLAGS]
+Search your entire account inventory (Bank, Shared Inventory, and all Characters) for items.
 
 .PP
 \fB-type\fP \fICATEGORY\fP
     Filter search results by a strict item type (e.g., "Weapon", "Armor").
 
 .PP
-\fB-list-types\fP
-    List all unique item types currently found in your inventories.
+\fB-character\fP \fINAME\fP
+    Filter search results to a specific character.
 
-.SS Trading Post (Commerce)
-\fB-tp-price\fP \fINAME_OR_ID\fP
-    Check current buy and sell offers on the Trading Post.
+.SS list [types|characters]
+List high-level account information.
 
 .PP
-\fB-tp-delivery\fP
+\fBtypes\fP
+    List all unique item types currently found in your inventories.
+
+.PP
+\fBcharacters\fP
+    List all characters on the account with their level, profession, and total playtime.
+
+.SS wallet
+Show the account's wallet (Gold, Gems, Karma, etc.).
+
+.SS tp <subcommand> [ARGUMENTS]
+Manage Trading Post (Commerce) activities.
+
+.PP
+\fBdelivery\fP
     Show items and coins waiting to be picked up from the Trading Post.
 
 .PP
-\fB-tp-orders\fP
-    Show active buy and sell orders.
+\fBorders\fP
+    Show current active buy and sell orders.
 
 .PP
-\fB-tp-history\fP
+\fBhistory\fP
     Show the last 90 days of Trading Post transaction history.
 
-.SS Currency Exchange
-\fB-exchange\fP
-    Show current Gem-to-Gold and Gold-to-Gem exchange rates.
+.PP
+\fBprice\fP \fINAME_OR_ID\fP
+    Check current buy and sell offers on the Trading Post for a specific item.
+
+.SS exchange [subcommand] [AMOUNT]
+Check Gem/Coin exchange rates.
 
 .PP
-\fB-exchange-gems\fP \fIAMOUNT\fP
-    Calculate how much gold you would receive for a specific amount of gems.
+\fBgems\fP \fIAMOUNT\fP
+    Calculate how many coins you would receive for a specific amount of gems.
 
 .PP
-\fB-exchange-coins\fP \fIAMOUNT\fP
-    Calculate how many gems you would receive for a specific amount of gold (in copper).
+\fBcoins\fP \fIAMOUNT\fP
+    Calculate how many gems you would receive for a specific amount of coins (in copper).
+
+.SS cache <subcommand> [ARGUMENTS]
+Manage the local item database.
+
+.PP
+\fBupdate\fP
+    Fetch and update the local item database from the GW2 API. Recommended to run once a week.
+
+.PP
+\fBfind\fP \fITERM\fP
+    Search for items in the local database by name without calling the API.
+
+.SS legendary [TERM]
+Display all items currently in your Legendary Armory.
 
 .SH EXAMPLES
 \fBSearch for "Legendary" items across the account:\fP
-    gw2cli "Legendary"
+    gw2cli search "Legendary"
 
 .PP
 \fBCheck the price of "Ectoplasm":\fP
-    gw2cli -tp-price "Glob of Ectoplasm"
+    gw2cli tp price "Glob of Ectoplasm"
 
 .PP
 \fBList all characters and their playtime:\fP
-    gw2cli -list-characters
+    gw2cli list characters
 
 .PP
 \fBCalculate exchange for 400 gems:\fP
-    gw2cli -exchange-gems 400
+    gw2cli exchange gems 400
 
 .SH FILES
 \fB~/.config/gw2cli/items.json\fP
