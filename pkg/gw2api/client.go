@@ -309,3 +309,34 @@ func (c *Client) GetGemsToCoins(quantity int) (*CommerceExchange, error) {
 	}
 	return &exchange, nil
 }
+
+func (c *Client) GetLegendaryArmory() ([]LegendaryArmoryItem, error) {
+	var items []LegendaryArmoryItem
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&items).
+		Get("/account/legendaryarmory")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return items, nil
+}
+
+func (c *Client) GetLegendaryArmoryList() ([]int, error) {
+	var ids []int
+	resp, err := c.rest.R().
+		SetResult(&ids).
+		Get("/legendaryarmory")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return ids, nil
+}
