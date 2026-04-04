@@ -47,3 +47,27 @@ func main() {
 In GW2CLI, we use pointers extensively in two main areas:
 1. **CLI Flags:** The `flag` package returns pointers. `flag.Bool("verbose", false, "...")` returns a `*bool`. When the user runs the CLI, the package updates the value at that memory address. We check it using `*verbose`.
 2. **API Responses:** When we fetch data from the Guild Wars 2 API, we pass a pointer to our structs so the JSON library can write the data directly into our variables: `json.Unmarshal(data, &myStruct)`.
+
+### Deep Dive: Unmarshaling & Pointers
+
+**Unmarshaling** is the process of taking a stream of data (like JSON from the GW2 API) and "mapping" it onto a native Go object (like our `Character` or `Item` structs).
+
+**Why do we use a pointer for it?**
+Go passes everything by value. If you passed a struct directly to `json.Unmarshal(data, myStruct)`, Go would create a **copy** of your struct, fill that copy with the data, and then discard the copy as soon as the function finished. Your original struct would remain empty!
+
+By passing a **Pointer** (`&myStruct`), you are giving the `Unmarshal` function the **memory address** (the physical location) of your original struct. This allows the function to "reach into" your memory and write the API data directly into your original variable, rather than a temporary copy.
+
+```go
+// Example of how unmarshaling requires pointers
+
+var char Character
+data := []byte(`{"name": "Rytlock", "level": 80}`)
+
+// FAILURE: This won't work because we're passing a copy of 'char'
+json.Unmarshal(data, char) 
+fmt.Println(char.Name) // Will be an empty string ""
+
+// SUCCESS: This works because we're passing the address of 'char'
+json.Unmarshal(data, &char) 
+fmt.Println(char.Name) // Will be "Rytlock"
+```
