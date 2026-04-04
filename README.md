@@ -49,6 +49,17 @@ go build -o gw2cli.exe cmd/gw2cli/main.go
 
 If you have `make` installed (e.g., via Chocolatey or MSYS2), you can also run `make build`.
 
+### Triggering a Release (Maintainers Only)
+
+The GitHub Actions pipeline automatically builds and cross-compiles binaries when a new version tag is pushed:
+
+```bash
+git checkout main
+git pull origin main
+git tag 2.x.x
+git push origin 2.x.x
+```
+
 ---
 
 ## Usage
