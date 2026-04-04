@@ -91,3 +91,8 @@ type CommerceExchange struct {
 	CoinsPerGem int `json:"coins_per_gem"`
 	Quantity    int `json:"quantity"`
 }
+
+type LegendaryArmoryItem struct {
+	ID    int `json:"id"`
+	Count int `json:"count"`
+}

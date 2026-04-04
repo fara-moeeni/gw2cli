@@ -8,7 +8,7 @@ import (
 
 func PrintGlobalHelp() {
 	fmt.Println(`
-GW2CLI - Guild Wars 2 Inventory Tool (v2.0.0)
+GW2CLI - Guild Wars 2 Inventory Tool (v2.1.0)
 
 Usage:
   ./gw2cli <command> [arguments]
@@ -20,8 +20,34 @@ Commands:
   tp         Trading Post (delivery, orders, history, price)
   exchange   Gem/Coin exchange rates
   cache      Manage local item database
+  legendary  Manage Legendary Armory
 
 Use "./gw2cli <command> -help" for more information on a command.`)
+}
+
+func PrintLegendaryHelp() {
+	fmt.Println(`
+Usage: ./gw2cli legendary [term]
+
+Description:
+  Display all items currently in your Legendary Armory.
+
+Arguments:
+  term          (Optional) Filter results by a partial item name.`)
+}
+
+func PrintLegendaryArmory(items []inventory.LegendaryItem) {
+	if len(items) == 0 {
+		fmt.Println("No items found in your Legendary Armory.")
+		return
+	}
+
+	fmt.Println("\n--- Account Legendary Armory ---")
+	fmt.Printf("%-35s %-20s %-5s\n", "Name", "Type", "Count")
+	fmt.Println("----------------------------------------------------------------")
+	for _, item := range items {
+		fmt.Printf("%-35s %-20s %-5d\n", item.Name, item.Type, item.Count)
+	}
 }
 
 func PrintSearchHelp() {

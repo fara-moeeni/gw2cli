@@ -31,6 +31,7 @@ func main() {
 	tpCmd := flag.NewFlagSet("tp", flag.ExitOnError)
 	exchangeCmd := flag.NewFlagSet("exchange", flag.ExitOnError)
 	cacheCmd := flag.NewFlagSet("cache", flag.ExitOnError)
+	legendaryCmd := flag.NewFlagSet("legendary", flag.ExitOnError)
 
 	// Configure usages
 	searchCmd.Usage = ui.PrintSearchHelp
@@ -38,6 +39,7 @@ func main() {
 	tpCmd.Usage = ui.PrintTPHelp
 	exchangeCmd.Usage = ui.PrintExchangeHelp
 	cacheCmd.Usage = ui.PrintCacheHelp
+	legendaryCmd.Usage = ui.PrintLegendaryHelp
 
 	verbose := false
 	for _, arg := range os.Args {
@@ -148,6 +150,20 @@ func main() {
 		default:
 			ui.PrintTPHelp()
 		}
+
+	case "legendary":
+		legendaryCmd.Parse(os.Args[2:])
+		requireAPIKey(apiKey)
+		if err := invService.CheckCacheStatus(); err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		term := strings.Join(legendaryCmd.Args(), " ")
+		fmt.Println("Fetching legendary armory...")
+		items, err := invService.GetLegendaryArmory(term)
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		ui.PrintLegendaryArmory(items)
 
 	case "exchange":
 		exchangeCmd.Parse(os.Args[2:])

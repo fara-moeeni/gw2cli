@@ -122,6 +122,12 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 ./gw2cli exchange coins 1000000
 ```
 
+**Check Legendary Armory:**
+```bash
+./gw2cli legendary
+./gw2cli legendary "Twilight"
+```
+
 **Build and search the local item database:**
 ```bash
 # Build/Refresh cache
