@@ -1,0 +1,109 @@
+.nh
+.TH gw2cli(1) | GW2CLI User Manual
+.SH NAME
+gw2cli \- A command-line interface for the Guild Wars 2 API.
+
+.SH SYNOPSIS
+\fBgw2cli\fP [FLAGS] [SEARCH_TERM]
+
+.SH DESCRIPTION
+\fBgw2cli\fP provides a fast, terminal-based interface to manage your Guild Wars 2 account. It supports searching through your bank, shared inventory, and character inventories, as well as checking Trading Post prices, wallet balances, and currency exchange rates.
+
+.PP
+The tool uses a local item cache to provide fast offline searching and to resolve item names to IDs.
+
+.SH OPTIONS
+.SS General Flags
+\fB-help\fP
+    Show the help message and exit.
+
+.PP
+\fB-verbose\fP
+    Enable verbose output for debugging and detailed progress tracking.
+
+.PP
+\fB-update-cache\fP
+    Fetch and update the local item database from the GW2 API. Recommended to run once a week.
+
+.PP
+\fB-find\fP \fITERM\fP
+    Search for items in the local database by name without calling the API.
+
+.SS Account & Character Flags
+\fB-list-characters\fP
+    List all characters on the account with their level, profession, and total playtime.
+
+.PP
+\fB-wallet\fP
+    Show the account's wallet (Gold, Gems, Karma, etc.).
+
+.PP
+\fB-character\fP \fINAME\fP
+    Filter search results to a specific character.
+
+.SS Inventory & Search
+\fB-item\fP \fITERM\fP
+    Search for an item by name or ID across all account inventories.
+
+.PP
+\fB-type\fP \fICATEGORY\fP
+    Filter search results by a strict item type (e.g., "Weapon", "Armor").
+
+.PP
+\fB-list-types\fP
+    List all unique item types currently found in your inventories.
+
+.SS Trading Post (Commerce)
+\fB-tp-price\fP \fINAME_OR_ID\fP
+    Check current buy and sell offers on the Trading Post.
+
+.PP
+\fB-tp-delivery\fP
+    Show items and coins waiting to be picked up from the Trading Post.
+
+.PP
+\fB-tp-orders\fP
+    Show active buy and sell orders.
+
+.PP
+\fB-tp-history\fP
+    Show the last 90 days of Trading Post transaction history.
+
+.SS Currency Exchange
+\fB-exchange\fP
+    Show current Gem-to-Gold and Gold-to-Gem exchange rates.
+
+.PP
+\fB-exchange-gems\fP \fIAMOUNT\fP
+    Calculate how much gold you would receive for a specific amount of gems.
+
+.PP
+\fB-exchange-coins\fP \fIAMOUNT\fP
+    Calculate how many gems you would receive for a specific amount of gold (in copper).
+
+.SH EXAMPLES
+\fBSearch for "Legendary" items across the account:\fP
+    gw2cli "Legendary"
+
+.PP
+\fBCheck the price of "Ectoplasm":\fP
+    gw2cli -tp-price "Glob of Ectoplasm"
+
+.PP
+\fBList all characters and their playtime:\fP
+    gw2cli -list-characters
+
+.PP
+\fBCalculate exchange for 400 gems:\fP
+    gw2cli -exchange-gems 400
+
+.SH FILES
+\fB~/.config/gw2cli/items.json\fP
+    The local item cache used for name resolution and offline search.
+
+.SH ENVIRONMENT
+\fBGW2_API_KEY\fP
+    The API key used to authenticate with the Guild Wars 2 API. Must have 'account', 'inventories', 'characters', 'tradingpost', and 'wallet' permissions.
+
+.SH AUTHOR
+fara-moeeni (https://github.com/fara-moeeni/gw2cli)

@@ -8,81 +8,76 @@ import (
 
 func PrintGlobalHelp() {
 	fmt.Println(`
-GW2CLI - Guild Wars 2 Inventory Search Tool (v1.4.0)
+GW2CLI - Guild Wars 2 Inventory Tool (v2.0.0)
 
 Usage:
-  ./gw2cli [flags] [search terms]
+  ./gw2cli <command> [arguments]
 
-Description:
-  Search your entire Guild Wars 2 account (Bank, Characters, Shared Slots) 
-  for items. You can filter by name, type, or location.
+Commands:
+  search     Search your inventory for items
+  list       List characters or item types
+  wallet     Show account currencies
+  tp         Trading Post (delivery, orders, history, price)
+  exchange   Gem/Coin exchange rates
+  cache      Manage local item database
 
-Options:
-  -item <term>
-        Search for an item by Name or ID (fuzzy match).
-        Use '-item help' for more details.
-
-  -type <category>
-        Filter by strict Item Type (e.g., 'Weapon', 'Armor').
-        Use '-type help' for more details.
-
-  -character <name/loc>
-        Search by Character Name or Location (e.g., 'Bank').
-        Use '-character help' for more details.
-
-  -find <term>
-        Search for an item in the local database by name.
-        Requires the item cache to be built.
-
-  -list-types
-        List all unique item types found in your inventory.
-
-  -list-characters
-        List all characters on your account with details (Level, Profession, etc).
-
-  -wallet
-        Show all currencies in your account wallet.
-
-  -tp-delivery
-        Show items and coin waiting to be picked up from the Trading Post.
-
-  -tp-orders
-        Show current active buy and sell orders.
-
-  -tp-history
-        Show past transaction history (bought and sold items).
-
-  -tp-price <item name or ID>
-        Look up the current buy and sell price for a specific item.
-        If the local database is missing, it will fallback to items you own.
-
-  -exchange
-        Show current gem/coin exchange rates.
-
-  -exchange-coins <amount>
-        How many gems can you buy with <amount> coins (in copper).
-
-  -exchange-gems <amount>
-        How many coins can you get for <amount> gems.
-
-  -update-cache
-        Build or update the local item database for game-wide name search.
-        This may take a few minutes depending on API limits.
-
-  -verbose
-        Enable verbose output (e.g., progress bars during caching).
-
-  -help
-        Show this help message.`)
+Use "./gw2cli <command> -help" for more information on a command.`)
 }
 
-func PrintTypeHelp() {
+func PrintSearchHelp() {
 	fmt.Println(`
-Option: -type [Category]
+Usage: ./gw2cli search [term] [flags]
 
 Description:
-  Filters search results to strictly match a specific Item Type.
-  `)
+  Search your entire account inventory for items.
+
+Flags:
+  -type <category>
+        Filter by strict Item Type (e.g., 'Weapon', 'Armor').
+  -character <name>
+        Search by Character Name or Location.`)
+}
+
+func PrintListHelp() {
+	fmt.Println(`
+Usage: ./gw2cli list [types|characters]
+
+Description:
+  List high-level account information.
+
+Arguments:
+  types         List all unique item types in your inventory.
+  characters    List all characters with details (Level, Profession, etc).`)
+}
+
+func PrintTPHelp() {
+	fmt.Println(`
+Usage: ./gw2cli tp <subcommand> [arguments]
+
+Subcommands:
+  delivery      Show pending Trading Post deliveries.
+  orders        Show active buy and sell orders.
+  history       Show past transaction history.
+  price <item>  Look up current TP prices for an item (Name or ID).`)
+}
+
+func PrintExchangeHelp() {
+	fmt.Println(`
+Usage: ./gw2cli exchange [subcommand] [amount]
+
+Subcommands:
+  (default)     Show overview of current rates (100 gems / 100g).
+  gems <amt>    How many coins can you get for <amt> gems.
+  coins <amt>   How many gems can you buy with <amt> coins (in copper).`)
+}
+
+func PrintCacheHelp() {
+	fmt.Println(`
+Usage: ./gw2cli cache <subcommand> [arguments]
+
+Subcommands:
+  update        Build or update the local item database.
+  find <term>   Search for an item in the local database by name.`)
 }
 
 func PrintResults(items []inventory.ItemDetail) {

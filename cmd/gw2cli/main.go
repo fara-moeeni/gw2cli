@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"gw2cli/internal/inventory"
@@ -12,237 +13,202 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "1.5.0"
+const Version = "2.0.0"
 
 func main() {
-        flag.Usage = ui.PrintGlobalHelp
-        itemFlag := flag.String("item", "", "Search by Item Name or ID")
-        typeFlag := flag.String("type", "", "Filter by strict Item Type")
-        charFlag := flag.String("character", "", "Search by Character Name or Location")
-        listTypesFlag := flag.Bool("list-types", false, "List all unique item types")
-        listCharsFlag := flag.Bool("list-characters", false, "List all characters")
-        walletFlag := flag.Bool("wallet", false, "Show account wallet")
-        tpDeliveryFlag := flag.Bool("tp-delivery", false, "Show pending Trading Post deliveries")
-        tpOrdersFlag := flag.Bool("tp-orders", false, "Show active Trading Post orders")
-        tpHistoryFlag := flag.Bool("tp-history", false, "Show past Trading Post transactions")
-        tpPriceFlag := flag.String("tp-price", "", "Check current Trading Post prices")
-        exchangeFlag := flag.Bool("exchange", false, "Show current gem/coin exchange rates")
-        exchangeCoinsFlag := flag.Int("exchange-coins", 0, "Amount of coins to exchange for gems")
-        exchangeGemsFlag := flag.Int("exchange-gems", 0, "Amount of gems to exchange for coins")
-        updateCacheFlag := flag.Bool("update-cache", false, "Update local item database")
-        findFlag := flag.String("find", "", "Search for items in local database by name")
+	if len(os.Args) < 2 {
+		ui.PrintGlobalHelp()
+		return
+	}
 
-        verboseFlag := flag.Bool("verbose", false, "Enable verbose output")
-        helpFlag := flag.Bool("help", false, "Show help")
-        flag.Parse()
+	// Define Subcommands
+	searchCmd := flag.NewFlagSet("search", flag.ExitOnError)
+	searchType := searchCmd.String("type", "", "Filter by strict Item Type")
+	searchChar := searchCmd.String("character", "", "Search by Character Name or Location")
 
-        if *helpFlag {
-                ui.PrintGlobalHelp()
-                return
-        }
+	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+	walletCmd := flag.NewFlagSet("wallet", flag.ExitOnError)
+	tpCmd := flag.NewFlagSet("tp", flag.ExitOnError)
+	exchangeCmd := flag.NewFlagSet("exchange", flag.ExitOnError)
+	cacheCmd := flag.NewFlagSet("cache", flag.ExitOnError)
 
-        // Correct flag parsing edge cases where flags are consumed as values
-        if strings.HasPrefix(*itemFlag, "-") {
-                switch *itemFlag {
-                case "-list-types":
-                        *listTypesFlag = true
-                        *itemFlag = ""
-                case "-list-characters":
-                        *listCharsFlag = true
-                        *itemFlag = ""
-                case "-wallet":
-                        *walletFlag = true
-                        *itemFlag = ""
-                case "-tp-delivery":
-                        *tpDeliveryFlag = true
-                        *itemFlag = ""
-                case "-tp-orders":
-                        *tpOrdersFlag = true
-                        *itemFlag = ""
-                case "-tp-history":
-                        *tpHistoryFlag = true
-                        *itemFlag = ""
-                case "-type", "-character", "-tp-price", "-verbose", "-help", "-update-cache", "-find":
-                        log.Fatalf("Error: Flag provided as value for -item. Did you forget the search term?\nUsage: ./gw2cli -item <term> [other flags]")
-                }
-        }
+	// Configure usages
+	searchCmd.Usage = ui.PrintSearchHelp
+	listCmd.Usage = ui.PrintListHelp
+	tpCmd.Usage = ui.PrintTPHelp
+	exchangeCmd.Usage = ui.PrintExchangeHelp
+	cacheCmd.Usage = ui.PrintCacheHelp
 
-        if strings.HasPrefix(*typeFlag, "-") {
-                log.Fatalf("Error: Flag provided as value for -type. Usage: ./gw2cli -type <category>")
-        }
-        if strings.HasPrefix(*charFlag, "-") {
-                log.Fatalf("Error: Flag provided as value for -character. Usage: ./gw2cli -character <name>")
-        }
-        if strings.HasPrefix(*tpPriceFlag, "-") {
-                log.Fatalf("Error: Flag provided as value for -tp-price. Usage: ./gw2cli -tp-price <name or ID>")
-        }
-        if strings.HasPrefix(*findFlag, "-") {
-                log.Fatalf("Error: Flag provided as value for -find. Usage: ./gw2cli -find <term>")
-        }
-
-        if strings.ToLower(*typeFlag) == "help" || strings.ToLower(*itemFlag) == "help" || strings.ToLower(*charFlag) == "help" {
-                ui.PrintGlobalHelp()
-                return
-        }
-
-        apiKey := os.Getenv("GW2_API_KEY")
-        client := gw2api.NewClient(apiKey)
-        invService := inventory.NewService(client)
-        invService.Verbose = *verboseFlag
-
-        // Global cache status check
-        _ = invService.CheckCacheStatus()
-
-        if *updateCacheFlag {
-                if err := invService.EnsureCache(true); err != nil {
-                        log.Fatalf("Error updating cache: %v", err)
-                }
-                return
-        }
-
-        if *findFlag != "" {
-                matches, err := invService.FindInCache(*findFlag)
-                if err != nil {
-                        log.Fatalf("Error searching cache: %v", err)
-                }
-                if len(matches) == 0 {
-                        fmt.Printf("no items found matching \"%s\"\n", *findFlag)
-                        return
-                }
-                ui.PrintCacheResults(matches)
-                return
-        }
-
-        // Auth-required check
-        if apiKey == "" {
-                log.Fatal("Please set the GW2_API_KEY environment variable")
-        }
-	if *listCharsFlag {
-		fmt.Println("Fetching character list...")
-		chars, err := invService.GetCharacterList()
-		if err != nil {
-			log.Fatalf("Error fetching characters: %v", err)
+	verbose := false
+	for _, arg := range os.Args {
+		if arg == "-verbose" {
+			verbose = true
+			break
 		}
-		ui.PrintCharacters(chars)
-		return
 	}
 
-	        if *walletFlag {
-	                fmt.Println("Fetching account wallet...")
-	                wallet, err := invService.GetWallet()
-	                if err != nil {
-	                        log.Fatalf("Error fetching wallet: %v", err)
-	                }
-	                ui.PrintWallet(wallet)
-	                return
-	        }
-	
-	        if *tpDeliveryFlag {
-	                fmt.Println("Fetching TP delivery...")
-	                delivery, err := invService.GetDelivery()
-	                if err != nil {
-	                        log.Fatalf("Error fetching TP delivery: %v", err)
-	                }
-	                ui.PrintTPDelivery(delivery)
-	                return
-	        }
-	
-	        if *tpOrdersFlag {
-	                fmt.Println("Fetching active TP orders...")
-	                buys, sells, err := invService.GetTransactions(true)
-	                if err != nil {
-	                        log.Fatalf("Error fetching TP orders: %v", err)
-	                }
-	                ui.PrintTPTransactions(buys, sells, true)
-	                return
-	        }
-	
-	        if *tpHistoryFlag {
-	                fmt.Println("Fetching TP transaction history...")
-	                buys, sells, err := invService.GetTransactions(false)
-	                if err != nil {
-	                        log.Fatalf("Error fetching TP history: %v", err)
-	                }
-	                ui.PrintTPTransactions(buys, sells, false)
-	                return
-	        }
-	
-	                        if *tpPriceFlag != "" {
-	                                fmt.Println("Fetching TP prices...")
-	                                prices, err := invService.GetPrices(*tpPriceFlag)
-	                                if err != nil {
-	                                        log.Fatalf("Error fetching TP prices: %v", err)
-	                                }
-	                                ui.PrintTPPrice(prices)
-	                                return
-	                        }
-	        
-	                        if *exchangeFlag {
-	                                fmt.Println("Fetching current exchange rates...")
-	                                g2c, err := invService.GetExchangeRate(100, true)
-	                                if err != nil {
-	                                        log.Fatalf("Error fetching gem exchange: %v", err)
-	                                }
-	                                c2g, err := invService.GetExchangeRate(1000000, false) // 100g
-	                                if err != nil {
-	                                        log.Fatalf("Error fetching coin exchange: %v", err)
-	                                }
-	                                ui.PrintExchangeRate(g2c, c2g)
-	                                return
-	                        }
-	        
-	                        if *exchangeGemsFlag > 0 {
-	                                fmt.Printf("Calculating exchange for %d gems...\n", *exchangeGemsFlag)
-	                                rate, err := invService.GetExchangeRate(*exchangeGemsFlag, true)
-	                                if err != nil {
-	                                        log.Fatalf("Error fetching exchange: %v", err)
-	                                }
-	                                ui.PrintExchangeRateSingle(rate, true)
-	                                return
-	                        }
-	        
-	                        if *exchangeCoinsFlag > 0 {
-	                                fmt.Printf("Calculating exchange for %s...\n", ui.FormatCoin(*exchangeCoinsFlag))
-	                                rate, err := invService.GetExchangeRate(*exchangeCoinsFlag, false)
-	                                if err != nil {
-	                                        log.Fatalf("Error fetching exchange: %v", err)
-	                                }
-	                                ui.PrintExchangeRateSingle(rate, false)
-	                                return
-	                        }
-	        
-	                        os.Stdout.WriteString("Fetching account data...\n")
-	        	allItems, err := invService.FetchAll()
-	if err != nil {
-		log.Fatalf("Error fetching inventory: %v", err)
-	}
+	apiKey := os.Getenv("GW2_API_KEY")
+	client := gw2api.NewClient(apiKey)
+	invService := inventory.NewService(client)
+	invService.Verbose = verbose
 
-	if len(allItems) == 0 {
-		log.Println("Inventory is empty.")
-		return
-	}
+	switch os.Args[1] {
+	case "search":
+		searchCmd.Parse(os.Args[2:])
+		requireAPIKey(apiKey)
+		_ = invService.CheckCacheStatus()
 
-	if *listTypesFlag {
-		types := inventory.GetUniqueTypes(allItems)
-		ui.PrintTypes(types)
-		return
-	}
+		searchTerm := strings.Join(searchCmd.Args(), " ")
+		fmt.Println("Fetching account data...")
+		allItems, err := invService.FetchAll()
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		results := inventory.Search(allItems, inventory.FilterCriteria{
+			SearchTerm: searchTerm,
+			Type:       *searchType,
+			Character:  *searchChar,
+		})
+		ui.PrintResults(results)
 
-	// Combine positional args into the search term if needed
-	globalFilter := strings.Join(flag.Args(), " ")
-	searchTerm := *itemFlag
-	if searchTerm == "" {
-		searchTerm = globalFilter
-	} else if globalFilter != "" {
-		searchTerm += " " + globalFilter
-	}
+	case "list":
+		listCmd.Parse(os.Args[2:])
+		if listCmd.NArg() < 1 {
+			ui.PrintListHelp()
+			return
+		}
+		switch listCmd.Arg(0) {
+		case "types":
+			requireAPIKey(apiKey)
+			fmt.Println("Fetching account data...")
+			allItems, err := invService.FetchAll()
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+			ui.PrintTypes(inventory.GetUniqueTypes(allItems))
+		case "characters":
+			requireAPIKey(apiKey)
+			fmt.Println("Fetching characters...")
+			chars, err := invService.GetCharacterList()
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+			ui.PrintCharacters(chars)
+		default:
+			ui.PrintListHelp()
+		}
 
-	criteria := inventory.FilterCriteria{
-		SearchTerm: searchTerm,
-		Type:       *typeFlag,
-		Character:  *charFlag,
-	}
+	case "wallet":
+		walletCmd.Parse(os.Args[2:])
+		requireAPIKey(apiKey)
+		fmt.Println("Fetching wallet...")
+		wallet, err := invService.GetWallet()
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		ui.PrintWallet(wallet)
 
-	results := inventory.Search(allItems, criteria)
-	ui.PrintResults(results)
+	case "tp":
+		tpCmd.Parse(os.Args[2:])
+		if tpCmd.NArg() < 1 {
+			ui.PrintTPHelp()
+			return
+		}
+		switch tpCmd.Arg(0) {
+		case "delivery":
+			requireAPIKey(apiKey)
+			delivery, err := invService.GetDelivery()
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+			ui.PrintTPDelivery(delivery)
+		case "orders":
+			requireAPIKey(apiKey)
+			buys, sells, err := invService.GetTransactions(true)
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+			ui.PrintTPTransactions(buys, sells, true)
+		case "history":
+			requireAPIKey(apiKey)
+			buys, sells, err := invService.GetTransactions(false)
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+			ui.PrintTPTransactions(buys, sells, false)
+		case "price":
+			if tpCmd.NArg() < 2 {
+				log.Fatal("Usage: tp price <item name or ID>")
+			}
+			prices, err := invService.GetPrices(strings.Join(tpCmd.Args()[1:], " "))
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+			ui.PrintTPPrice(prices)
+		default:
+			ui.PrintTPHelp()
+		}
+
+	case "exchange":
+		exchangeCmd.Parse(os.Args[2:])
+		if exchangeCmd.NArg() == 0 {
+			g2c, _ := invService.GetExchangeRate(100, true)
+			c2g, _ := invService.GetExchangeRate(1000000, false)
+			ui.PrintExchangeRate(g2c, c2g)
+		} else {
+			if exchangeCmd.NArg() < 2 {
+				ui.PrintExchangeHelp()
+				return
+			}
+			amount, _ := strconv.Atoi(exchangeCmd.Arg(1))
+			switch exchangeCmd.Arg(0) {
+			case "gems":
+				rate, _ := invService.GetExchangeRate(amount, true)
+				ui.PrintExchangeRateSingle(rate, true)
+			case "coins":
+				rate, _ := invService.GetExchangeRate(amount, false)
+				ui.PrintExchangeRateSingle(rate, false)
+			default:
+				ui.PrintExchangeHelp()
+			}
+		}
+
+	case "cache":
+		cacheCmd.Parse(os.Args[2:])
+		if cacheCmd.NArg() < 1 {
+			ui.PrintCacheHelp()
+			return
+		}
+		switch cacheCmd.Arg(0) {
+		case "update":
+			if err := invService.EnsureCache(true); err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+		case "find":
+			if cacheCmd.NArg() < 2 {
+				log.Fatal("Usage: cache find <term>")
+			}
+			matches, err := invService.FindInCache(strings.Join(cacheCmd.Args()[1:], " "))
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+			ui.PrintCacheResults(matches)
+		default:
+			ui.PrintCacheHelp()
+		}
+
+	case "-version", "--version", "version":
+		fmt.Printf("GW2CLI version %s\n", Version)
+
+	default:
+		fmt.Printf("Unknown command: %s\n", os.Args[1])
+		ui.PrintGlobalHelp()
+		os.Exit(1)
+	}
+}
+
+func requireAPIKey(key string) {
+	if key == "" {
+		log.Fatal("Error: GW2_API_KEY environment variable not set")
+	}
 }
