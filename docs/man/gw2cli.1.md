@@ -4,83 +4,91 @@
 gw2cli - A command-line interface for the Guild Wars 2 API.
 
 ## SYNOPSIS
-**gw2cli** [FLAGS] [SEARCH_TERM]
+**gw2cli** <COMMAND> [ARGUMENTS] [FLAGS]
 
 ## DESCRIPTION
-**gw2cli** provides a fast, terminal-based interface to manage your Guild Wars 2 account. It supports searching through your bank, shared inventory, and character inventories, as well as checking Trading Post prices, wallet balances, and currency exchange rates.
+**gw2cli** provides a fast, terminal-based interface to manage your Guild Wars 2 account. It uses a subcommand architecture to organize its various features, including inventory search, character listing, Trading Post management, and currency exchange.
 
 The tool uses a local item cache to provide fast offline searching and to resolve item names to IDs.
 
-## OPTIONS
-
-### General Flags
-**-help**
-    Show the help message and exit.
-
+## GLOBAL OPTIONS
 **-verbose**
     Enable verbose output for debugging and detailed progress tracking.
 
-**-update-cache**
-    Fetch and update the local item database from the GW2 API. Recommended to run once a week.
+**-help**
+    Show the global help message and exit.
 
-**-find** *TERM*
-    Search for items in the local database by name without calling the API.
+**version**
+    Show the version information and exit.
 
-### Account & Character Flags
-**-list-characters**
-    List all characters on the account with their level, profession, and total playtime.
+## COMMANDS
 
-**-wallet**
-    Show the account's wallet (Gold, Gems, Karma, etc.).
-
-**-character** *NAME*
-    Filter search results to a specific character.
-
-### Inventory & Search
-**-item** *TERM*
-    Search for an item by name or ID across all account inventories.
+### search [TERM] [FLAGS]
+Search your entire account inventory (Bank, Shared Inventory, and all Characters) for items.
 
 **-type** *CATEGORY*
     Filter search results by a strict item type (e.g., "Weapon", "Armor").
 
-**-list-types**
+**-character** *NAME*
+    Filter search results to a specific character.
+
+### list [types|characters]
+List high-level account information.
+
+**types**
     List all unique item types currently found in your inventories.
 
-### Trading Post (Commerce)
-**-tp-price** *NAME_OR_ID*
-    Check current buy and sell offers on the Trading Post.
+**characters**
+    List all characters on the account with their level, profession, and total playtime.
 
-**-tp-delivery**
+### wallet
+Show the account's wallet (Gold, Gems, Karma, etc.).
+
+### tp <subcommand> [ARGUMENTS]
+Manage Trading Post (Commerce) activities.
+
+**delivery**
     Show items and coins waiting to be picked up from the Trading Post.
 
-**-tp-orders**
-    Show active buy and sell orders.
+**orders**
+    Show current active buy and sell orders.
 
-**-tp-history**
+**history**
     Show the last 90 days of Trading Post transaction history.
 
-### Currency Exchange
-**-exchange**
-    Show current Gem-to-Gold and Gold-to-Gem exchange rates.
+**price** *NAME_OR_ID*
+    Check current buy and sell offers on the Trading Post for a specific item.
 
-**-exchange-gems** *AMOUNT*
-    Calculate how much gold you would receive for a specific amount of gems.
+### exchange [subcommand] [AMOUNT]
+Check Gem/Coin exchange rates.
 
-**-exchange-coins** *AMOUNT*
-    Calculate how many gems you would receive for a specific amount of gold (in copper).
+**gems** *AMOUNT*
+    Calculate how many coins you would receive for a specific amount of gems.
+
+**coins** *AMOUNT*
+    Calculate how many gems you would receive for a specific amount of coins (in copper).
+
+### cache <subcommand> [ARGUMENTS]
+Manage the local item database.
+
+**update**
+    Fetch and update the local item database from the GW2 API. Recommended to run once a week.
+
+**find** *TERM*
+    Search for items in the local database by name without calling the API.
 
 ## EXAMPLES
 **Search for "Legendary" items across the account:**
-    gw2cli "Legendary"
+    gw2cli search "Legendary"
 
 **Check the price of "Ectoplasm":**
-    gw2cli -tp-price "Glob of Ectoplasm"
+    gw2cli tp price "Glob of Ectoplasm"
 
 **List all characters and their playtime:**
-    gw2cli -list-characters
+    gw2cli list characters
 
 **Calculate exchange for 400 gems:**
-    gw2cli -exchange-gems 400
+    gw2cli exchange gems 400
 
 ## FILES
 **~/.config/gw2cli/items.json**
