@@ -479,45 +479,64 @@ func (c *Client) GetAccountFinishers() ([]int, error) {
 }
 
 func (c *Client) ResolveSkins(ids []int) ([]Skin, error) {
-	var results []Skin
-	err := c.getEntities("/skins", ids, &results)
-	return results, err
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	var allSkins []Skin
+	batchSize := 200
+
+	for i := 0; i < len(ids); i += batchSize {
+		end := i + batchSize
+		if end > len(ids) {
+			end = len(ids)
+		}
+
+		batch := ids[i:end]
+		var strIDs []string
+		for _, id := range batch {
+			strIDs = append(strIDs, strconv.Itoa(id))
+		}
+
+		var batchSkins []Skin
+		resp, err := c.rest.R().
+			SetQueryParam("ids", strings.Join(strIDs, ",")).
+			SetResult(&batchSkins).
+			Get("/skins")
+
+		if err != nil {
+			return allSkins, err
+		}
+		if resp.IsError() {
+			return allSkins, fmt.Errorf("API error: %s", resp.Status())
+		}
+		allSkins = append(allSkins, batchSkins...)
+	}
+	return allSkins, nil
 }
 
 func (c *Client) ResolveColors(ids []int) ([]NamedEntity, error) {
-	var results []NamedEntity
-	err := c.getEntities("/colors", ids, &results)
-	return results, err
+	return c.resolveEntities("/colors", ids)
 }
 
 func (c *Client) ResolveMinis(ids []int) ([]NamedEntity, error) {
-	var results []NamedEntity
-	err := c.getEntities("/minis", ids, &results)
-	return results, err
+	return c.resolveEntities("/minis", ids)
 }
 
 func (c *Client) ResolveMountSkins(ids []int) ([]NamedEntity, error) {
-	var results []NamedEntity
-	err := c.getEntities("/mounts/skins", ids, &results)
-	return results, err
+	return c.resolveEntities("/mounts/skins", ids)
 }
 
 func (c *Client) ResolveOutfits(ids []int) ([]NamedEntity, error) {
-	var results []NamedEntity
-	err := c.getEntities("/outfits", ids, &results)
-	return results, err
+	return c.resolveEntities("/outfits", ids)
 }
 
 func (c *Client) ResolveNovelties(ids []int) ([]NamedEntity, error) {
-	var results []NamedEntity
-	err := c.getEntities("/novelties", ids, &results)
-	return results, err
+	return c.resolveEntities("/novelties", ids)
 }
 
 func (c *Client) ResolveFinishers(ids []int) ([]NamedEntity, error) {
-	var results []NamedEntity
-	err := c.getEntities("/finishers", ids, &results)
-	return results, err
+	return c.resolveEntities("/finishers", ids)
 }
 
 func (c *Client) getAccountIDs(path string) ([]int, error) {
@@ -536,35 +555,39 @@ func (c *Client) getAccountIDs(path string) ([]int, error) {
 	return ids, nil
 }
 
-func (c *Client) getEntities(path string, ids []int, result interface{}) error {
+func (c *Client) resolveEntities(path string, ids []int) ([]NamedEntity, error) {
 	if len(ids) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	var strIDs []string
-	for _, id := range ids {
-		strIDs = append(strIDs, strconv.Itoa(id))
-	}
-
+	var allItems []NamedEntity
 	batchSize := 200
-	for i := 0; i < len(strIDs); i += batchSize {
+
+	for i := 0; i < len(ids); i += batchSize {
 		end := i + batchSize
-		if end > len(strIDs) {
-			end = len(strIDs)
+		if end > len(ids) {
+			end = len(ids)
 		}
 
-		batch := strIDs[i:end]
+		batch := ids[i:end]
+		var strIDs []string
+		for _, id := range batch {
+			strIDs = append(strIDs, strconv.Itoa(id))
+		}
+
+		var batchItems []NamedEntity
 		resp, err := c.rest.R().
-			SetQueryParam("ids", strings.Join(batch, ",")).
-			SetResult(result).
+			SetQueryParam("ids", strings.Join(strIDs, ",")).
+			SetResult(&batchItems).
 			Get(path)
 
 		if err != nil {
-			return err
+			return allItems, err
 		}
 		if resp.IsError() {
-			return fmt.Errorf("API error: %s", resp.Status())
+			return allItems, fmt.Errorf("API error: %s", resp.Status())
 		}
+		allItems = append(allItems, batchItems...)
 	}
-	return nil
+	return allItems, nil
 }
