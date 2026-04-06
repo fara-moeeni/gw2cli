@@ -26,8 +26,68 @@ Commands:
   collection Manage account collections
   daily      Track daily resets and objectives
   weekly     Track weekly resets and raids
+  achievements Track achievements and masteries
 
 Use "./gw2cli <command> -help" for more information on a command.`)
+}
+
+func PrintAchievementHelp() {
+	fmt.Println(`
+Usage: ./gw2cli achievements [subcommand] [filter]
+
+Subcommands:
+  (default)      Summary of achievement categories and AP.
+  update-cache   Build/refresh the local achievement database.
+  find <term>    Search achievements by name and show progress.
+  masteries      Show mastery points and luck progress.
+  convergences   Convergences achievement progress.
+  raids          Raid achievement progress.
+  fractals       Fractal achievement progress.
+  strikes        Strike mission achievement progress.
+  pvp            PvP rank and achievement progress.
+  wvw            WvW rank and achievement progress.`)
+}
+
+func PrintAchievementSummary(summaries []inventory.CategorySummary) {
+	fmt.Println("\n--- Achievement Summary ---")
+	fmt.Printf("%-40s %-15s %-10s\n", "Category", "Completed", "AP Earned")
+	fmt.Println("----------------------------------------------------------------------")
+	for _, s := range summaries {
+		fmt.Printf("%-40s %d/%-13d %-10d\n", s.Name, s.Completed, s.Total, s.AP)
+	}
+}
+
+func PrintAchievementProgress(achievements []inventory.AchievementProgress) {
+	if len(achievements) == 0 {
+		fmt.Println("No matching achievements found.")
+		return
+	}
+
+	fmt.Println("\n--- Achievement Progress ---")
+	fmt.Printf("%-40s %-12s %-12s %-5s %s\n", "Name", "Progress", "Tiers", "AP", "Status")
+	fmt.Println("-----------------------------------------------------------------------------------")
+	for _, a := range achievements {
+		prog := fmt.Sprintf("%d/%d", a.Current, a.Max)
+		if a.Max == 0 {
+			prog = fmt.Sprintf("%d", a.Current)
+		}
+		fmt.Printf("%-40s %-12s %-12s %-5d %s\n", a.Name, prog, a.TierStatus, a.Points, a.StatusSymbol)
+	}
+}
+
+func PrintMasterySummary(summary *inventory.MasterySummary) {
+	fmt.Println("\n--- Mastery & Luck Summary ---")
+	
+	fmt.Print("Mastery Points: ")
+	var parts []string
+	total := 0
+	for _, r := range summary.Regions {
+		parts = append(parts, fmt.Sprintf("%s: %d", r.Name, r.Earned))
+		total += r.Earned
+	}
+	fmt.Printf("%s  Total: %d\n", strings.Join(parts, "  "), total)
+	
+	fmt.Printf("Total Luck:     %d\n", summary.Luck)
 }
 
 func PrintDailyHelp() {

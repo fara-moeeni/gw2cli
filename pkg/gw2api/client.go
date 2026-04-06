@@ -788,3 +788,170 @@ func (c *Client) GetWorldBossIDs() ([]string, error) {
 	}
 	return ids, nil
 }
+
+func (c *Client) GetAllAchievementIDs() ([]int, error) {
+	var ids []int
+	resp, err := c.rest.R().Get("/achievements")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return ids, nil
+}
+
+func (c *Client) GetAchievementsWithProgress(ids []int, progress func(int, int, []Achievement)) ([]Achievement, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	var allAchievements []Achievement
+	batchSize := 200
+
+	for i := 0; i < len(ids); i += batchSize {
+		end := i + batchSize
+		if end > len(ids) {
+			end = len(ids)
+		}
+
+		batch := ids[i:end]
+		var strIDs []string
+		for _, id := range batch {
+			strIDs = append(strIDs, strconv.Itoa(id))
+		}
+
+		var batchAchievements []Achievement
+		resp, err := c.rest.R().
+			SetQueryParam("ids", strings.Join(strIDs, ",")).
+			SetResult(&batchAchievements).
+			Get("/achievements")
+
+		if err != nil {
+			return allAchievements, err
+		}
+		if resp.IsError() {
+			return allAchievements, fmt.Errorf("API error: %s", resp.Status())
+		}
+		allAchievements = append(allAchievements, batchAchievements...)
+		if progress != nil {
+			progress(len(allAchievements), len(ids), batchAchievements)
+		}
+	}
+	return allAchievements, nil
+}
+
+func (c *Client) GetAccountAchievements() ([]AccountAchievement, error) {
+	var achievements []AccountAchievement
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&achievements).
+		Get("/account/achievements")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return achievements, nil
+}
+
+func (c *Client) GetAccountMasteries() ([]AccountMastery, error) {
+	var masteries []AccountMastery
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&masteries).
+		Get("/account/masteries")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return masteries, nil
+}
+
+func (c *Client) GetMasteryPointSummary() (*MasteryPointSummary, error) {
+	var summary MasteryPointSummary
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&summary).
+		Get("/account/mastery/points")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return &summary, nil
+}
+
+func (c *Client) GetLuck() (int, error) {
+	var luck []Luck
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&luck).
+		Get("/account/luck")
+	if err != nil {
+		return 0, err
+	}
+	if resp.IsError() {
+		return 0, fmt.Errorf("API error: %s", resp.Status())
+	}
+	if len(luck) > 0 {
+		return luck[0].Value, nil
+	}
+	return 0, nil
+}
+
+func (c *Client) GetMasteries(ids []int) ([]Mastery, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	var strIDs []string
+	for _, id := range ids {
+		strIDs = append(strIDs, strconv.Itoa(id))
+	}
+	var masteries []Mastery
+	resp, err := c.rest.R().
+		SetQueryParam("ids", strings.Join(strIDs, ",")).
+		SetResult(&masteries).
+		Get("/masteries")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return masteries, nil
+}
+
+func (c *Client) GetAchievementCategories() ([]AchievementCategory, error) {
+	var categories []AchievementCategory
+	resp, err := c.rest.R().
+		SetQueryParam("ids", "all").
+		SetResult(&categories).
+		Get("/achievements/categories")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return categories, nil
+}
+
+func (c *Client) GetAchievementGroups() ([]AchievementGroup, error) {
+	var groups []AchievementGroup
+	resp, err := c.rest.R().
+		SetQueryParam("ids", "all").
+		SetResult(&groups).
+		Get("/achievements/groups")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return groups, nil
+}

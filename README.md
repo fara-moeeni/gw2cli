@@ -194,6 +194,27 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 ```
 Note: Convergences rotation is not available via the API — check [https://wiki.guildwars2.com/wiki/Convergences](https://wiki.guildwars2.com/wiki/Convergences)
 
+**Track achievements and progression:**
+```bash
+# Summary of all achievement categories (AP earned)
+./gw2cli achievements
+
+# Build/Refresh achievement cache (required for 'find')
+./gw2cli achievements update-cache
+
+# Search for specific achievements across all categories
+./gw2cli achievements find "Conqueror"
+
+# Show mastery points by region and total luck
+./gw2cli achievements masteries
+
+# Category-specific tracking
+./gw2cli achievements raids
+./gw2cli achievements fractals
+./gw2cli achievements pvp
+```
+Note: Achievements tracking requires the **'progression'** API key permission.
+
 ---
 
 ## Project Structure

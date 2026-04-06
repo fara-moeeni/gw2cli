@@ -716,3 +716,216 @@ func (s *Service) GetDailyDungeons() ([]DailyStatus, error) {
 
 	return results, nil
 }
+
+func (s *Service) GetAchievementSummary() ([]CategorySummary, error) {
+	accountAch, err := s.client.GetAccountAchievements()
+	if err != nil {
+		return nil, err
+	}
+
+	categories, err := s.client.GetAchievementCategories()
+	if err != nil {
+		return nil, err
+	}
+
+	cache, err := s.LoadAchievementCache()
+	if err != nil {
+		return nil, err
+	}
+
+	achMap := make(map[int]AchievementCacheEntry)
+	for _, a := range cache.Achievements {
+		achMap[a.ID] = a
+	}
+
+	progMap := make(map[int]gw2api.AccountAchievement)
+	for _, a := range accountAch {
+		progMap[a.ID] = a
+	}
+
+	var results []CategorySummary
+	for _, cat := range categories {
+		completed := 0
+		ap := 0
+		for _, aid := range cat.Achievements {
+			if p, ok := progMap[aid]; ok {
+				if p.Done {
+					completed++
+				}
+				if a, okAch := achMap[aid]; okAch {
+					for _, t := range a.Tiers {
+						if p.Current >= t.Count {
+							ap += t.Points
+						}
+					}
+				}
+			}
+		}
+		if len(cat.Achievements) > 0 {
+			results = append(results, CategorySummary{
+				Name:      cat.Name,
+				Completed: completed,
+				Total:     len(cat.Achievements),
+				AP:        ap,
+			})
+		}
+	}
+
+	return results, nil
+}
+
+func (s *Service) FindAchievements(term string) ([]AchievementProgress, error) {
+	cache, err := s.LoadAchievementCache()
+	if err != nil {
+		return nil, err
+	}
+
+	accountAch, err := s.client.GetAccountAchievements()
+	if err != nil {
+		return nil, err
+	}
+
+	progMap := make(map[int]gw2api.AccountAchievement)
+	for _, a := range accountAch {
+		progMap[a.ID] = a
+	}
+
+	var results []AchievementProgress
+	term = strings.ToLower(term)
+
+	for _, a := range cache.Achievements {
+		if strings.Contains(strings.ToLower(a.Name), term) {
+			p := progMap[a.ID]
+			results = append(results, s.mapToProgress(a, p))
+		}
+	}
+
+	return results, nil
+}
+
+func (s *Service) GetMasterySummary() (*MasterySummary, error) {
+	points, err := s.client.GetMasteryPointSummary()
+	if err != nil {
+		return nil, err
+	}
+
+	luck, err := s.client.GetLuck()
+	if err != nil {
+		luck = 0
+	}
+
+	var regions []MasteryRegion
+	for _, t := range points.Totals {
+		regions = append(regions, MasteryRegion{
+			Name:   t.Region,
+			Spent:  t.Spent,
+			Earned: t.Earned,
+		})
+	}
+
+	return &MasterySummary{
+		Regions: regions,
+		Luck:    luck,
+	}, nil
+}
+
+func (s *Service) mapToProgress(a AchievementCacheEntry, p gw2api.AccountAchievement) AchievementProgress {
+	symbol := "[ ]"
+	if p.Done {
+		symbol = "[✓]"
+	} else if p.Current > 0 {
+		symbol = "[~]"
+	}
+
+	ap := 0
+	tiersDone := 0
+	for _, t := range a.Tiers {
+		if p.Current >= t.Count {
+			ap += t.Points
+			tiersDone++
+		}
+	}
+
+	maxCount := 0
+	if len(a.Tiers) > 0 {
+		maxCount = a.Tiers[len(a.Tiers)-1].Count
+	}
+
+	return AchievementProgress{
+		ID:           a.ID,
+		Name:         a.Name,
+		Description:  a.Description,
+		Current:      p.Current,
+		Max:          maxCount,
+		Points:       ap,
+		Done:         p.Done,
+		TierStatus:   fmt.Sprintf("%d/%d tiers", tiersDone, len(a.Tiers)),
+		StatusSymbol: symbol,
+	}
+}
+
+func (s *Service) GetCategoryAchievements(groupName string) ([]AchievementProgress, error) {
+	groups, err := s.client.GetAchievementGroups()
+	if err != nil {
+		return nil, err
+	}
+
+	categories, err := s.client.GetAchievementCategories()
+	if err != nil {
+		return nil, err
+	}
+
+	cache, err := s.LoadAchievementCache()
+	if err != nil {
+		return nil, err
+	}
+
+	accountAch, err := s.client.GetAccountAchievements()
+	if err != nil {
+		return nil, err
+	}
+
+	progMap := make(map[int]gw2api.AccountAchievement)
+	for _, a := range accountAch {
+		progMap[a.ID] = a
+	}
+
+	achMap := make(map[int]AchievementCacheEntry)
+	for _, a := range cache.Achievements {
+		achMap[a.ID] = a
+	}
+
+	catMap := make(map[int]gw2api.AchievementCategory)
+	for _, c := range categories {
+		catMap[c.ID] = c
+	}
+
+	var targetAchIDs []int
+	for _, g := range groups {
+		if strings.Contains(strings.ToLower(g.Name), strings.ToLower(groupName)) {
+			for _, cid := range g.Categories {
+				if cat, ok := catMap[cid]; ok {
+					targetAchIDs = append(targetAchIDs, cat.Achievements...)
+				}
+			}
+		}
+	}
+
+	// Fallback to searching categories directly if no group found
+	if len(targetAchIDs) == 0 {
+		for _, c := range categories {
+			if strings.Contains(strings.ToLower(c.Name), strings.ToLower(groupName)) {
+				targetAchIDs = append(targetAchIDs, c.Achievements...)
+			}
+		}
+	}
+
+	var results []AchievementProgress
+	for _, aid := range targetAchIDs {
+		if a, ok := achMap[aid]; ok {
+			results = append(results, s.mapToProgress(a, progMap[aid]))
+		}
+	}
+
+	return results, nil
+}

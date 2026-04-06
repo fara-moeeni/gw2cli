@@ -77,3 +77,34 @@ type RaidWingStatus struct {
 	Name   string
 	Events []DailyStatus
 }
+
+type AchievementProgress struct {
+	ID           int
+	Name         string
+	Description  string
+	Requirement  string
+	Current      int
+	Max          int
+	Points       int
+	Done         bool
+	TierStatus   string // e.g. "2/4 tiers"
+	StatusSymbol string // [✓], [~], [ ]
+}
+
+type CategorySummary struct {
+	Name      string
+	Completed int
+	Total     int
+	AP        int
+}
+
+type MasteryRegion struct {
+	Name   string
+	Spent  int
+	Earned int
+}
+
+type MasterySummary struct {
+	Regions []MasteryRegion
+	Luck    int
+}

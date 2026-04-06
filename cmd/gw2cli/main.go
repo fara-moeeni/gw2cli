@@ -13,7 +13,7 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "2.4.0"
+const Version = "2.5.0"
 
 func main() {
         if len(os.Args) < 2 {
@@ -36,6 +36,7 @@ func main() {
         collectionCmd := flag.NewFlagSet("collection", flag.ExitOnError)
         dailyCmd := flag.NewFlagSet("daily", flag.ExitOnError)
         weeklyCmd := flag.NewFlagSet("weekly", flag.ExitOnError)
+        achievementsCmd := flag.NewFlagSet("achievements", flag.ExitOnError)
 
         // Configure usages
         searchCmd.Usage = ui.PrintSearchHelp
@@ -48,6 +49,7 @@ func main() {
         collectionCmd.Usage = ui.PrintCollectionHelp
         dailyCmd.Usage = ui.PrintDailyHelp
         weeklyCmd.Usage = ui.PrintWeeklyHelp
+        achievementsCmd.Usage = ui.PrintAchievementHelp
 	verbose := false
 	for _, arg := range os.Args {
 		if arg == "-verbose" {
@@ -300,7 +302,57 @@ func main() {
 			wv, _ := invService.GetWeeklyWizardsVault()
 			ui.PrintWizardsVault(wv, "Weekly")
 
+			case "achievements":
+			achievementsCmd.Parse(os.Args[2:])
+			requireAPIKey(apiKey)
+			if achievementsCmd.NArg() == 0 {
+			        _ = invService.CheckAchievementCacheStatus()
+			        fmt.Println("Fetching achievement summary...")
+			        summaries, err := invService.GetAchievementSummary()
+			        if err != nil {
+			                log.Fatalf("Error: %v", err)
+			        }
+			        ui.PrintAchievementSummary(summaries)
+			} else {
+			        switch achievementsCmd.Arg(0) {
+			        case "update-cache":
+			                if err := invService.EnsureAchievementCache(true); err != nil {
+			                        log.Fatalf("Error: %v", err)
+			                }
+			        case "find":
+			                if achievementsCmd.NArg() < 2 {
+			                        log.Fatal("Usage: achievements find <term>")
+			                }
+			                _ = invService.CheckAchievementCacheStatus()
+			                fmt.Println("Searching achievements...")
+			                results, err := invService.FindAchievements(strings.Join(achievementsCmd.Args()[1:], " "))
+			                if err != nil {
+			                        log.Fatalf("Error: %v", err)
+			                }
+			                ui.PrintAchievementProgress(results)
+			        case "masteries":
+			                fmt.Println("Fetching mastery summary...")
+			                summary, err := invService.GetMasterySummary()
+			                if err != nil {
+			                        log.Fatalf("Error: %v", err)
+			                }
+			                ui.PrintMasterySummary(summary)
+			        case "convergences", "raids", "fractals", "strikes", "pvp", "wvw":
+			                category := achievementsCmd.Arg(0)
+			                _ = invService.CheckAchievementCacheStatus()
+			                fmt.Printf("Fetching %s achievements...\n", category)
+			                results, err := invService.GetCategoryAchievements(category)
+			                if err != nil {
+			                        log.Fatalf("Error: %v", err)
+			                }
+			                ui.PrintAchievementProgress(results)
+			        default:
+			                ui.PrintAchievementHelp()
+			        }
+			}
+
 			case "exchange":
+
 		exchangeCmd.Parse(os.Args[2:])
 		if exchangeCmd.NArg() == 0 {
 			g2c, _ := invService.GetExchangeRate(100, true)

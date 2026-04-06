@@ -139,13 +139,14 @@ type DailyAchievements struct {
 }
 
 type Achievement struct {
-	ID          int      `json:"id"`
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Requirement string   `json:"requirement"`
-	LockedText  string   `json:"locked_text"`
-	Type        string   `json:"type"`
-	Flags       []string `json:"flags"`
+	ID          int               `json:"id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Requirement string            `json:"requirement"`
+	LockedText  string            `json:"locked_text"`
+	Type        string            `json:"type"`
+	Flags       []string          `json:"flags"`
+	Tiers       []AchievementTier `json:"tiers"`
 }
 
 type Dungeon struct {
@@ -179,4 +180,58 @@ type WizardsVaultObjective struct {
 
 type WizardsVaultResponse struct {
 	Objectives []WizardsVaultObjective `json:"objectives"`
+}
+
+type AchievementTier struct {
+	Count  int `json:"count"`
+	Points int `json:"points"`
+}
+
+type AchievementCategory struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	Order        int    `json:"order"`
+	Achievements []int  `json:"achievements"`
+}
+
+type AchievementGroup struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	Order        int    `json:"order"`
+	Categories   []int  `json:"categories"`
+}
+
+type AccountAchievement struct {
+	ID        int  `json:"id"`
+	Current   int  `json:"current"`
+	Max       int  `json:"max"`
+	Done      bool `json:"done"`
+	Repeated  int  `json:"repeated,omitempty"`
+	Bits      []int `json:"bits,omitempty"`
+}
+
+type Mastery struct {
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	Region string `json:"region"`
+}
+
+type MasteryPointSummary struct {
+	Totals []struct {
+		Region string `json:"region"`
+		Spent  int    `json:"spent"`
+		Earned int    `json:"earned"`
+	} `json:"totals"`
+}
+
+type Luck struct {
+	ID    string `json:"id"`
+	Value int    `json:"value"`
+}
+
+type AccountMastery struct {
+	ID    int `json:"id"`
+	Level int `json:"level"`
 }
