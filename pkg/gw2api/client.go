@@ -340,3 +340,77 @@ func (c *Client) GetLegendaryArmoryList() ([]int, error) {
 	}
 	return ids, nil
 }
+
+func (c *Client) GetAccountRecipes() ([]int, error) {
+	var ids []int
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&ids).
+		Get("/account/recipes")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return ids, nil
+}
+
+func (c *Client) GetRecipes(ids []int) ([]Recipe, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	var list []string
+	for _, id := range ids {
+		list = append(list, strconv.Itoa(id))
+	}
+
+	var allRecipes []Recipe
+	batchSize := 200
+
+	for i := 0; i < len(list); i += batchSize {
+		end := i + batchSize
+		if end > len(list) {
+			end = len(list)
+		}
+
+		batch := list[i:end]
+		var batchRecipes []Recipe
+
+		resp, err := c.rest.R().
+			SetQueryParam("ids", strings.Join(batch, ",")).
+			SetResult(&batchRecipes).
+			Get("/recipes")
+
+		if err != nil {
+			return allRecipes, err
+		}
+		if resp.IsError() {
+			return allRecipes, fmt.Errorf("API error fetching recipes: %s", resp.Status())
+		}
+		allRecipes = append(allRecipes, batchRecipes...)
+	}
+
+	return allRecipes, nil
+}
+
+func (c *Client) SearchRecipesByItem(itemID int, input bool) ([]int, error) {
+	var ids []int
+	req := c.rest.R().SetResult(&ids)
+	if input {
+		req.SetQueryParam("input", strconv.Itoa(itemID))
+	} else {
+		req.SetQueryParam("output", strconv.Itoa(itemID))
+	}
+
+	resp, err := req.Get("/recipes/search")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return ids, nil
+}

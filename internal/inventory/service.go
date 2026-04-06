@@ -225,3 +225,139 @@ func GetUniqueTypes(items []ItemDetail) []string {
 	sort.Strings(types)
 	return types
 }
+
+func (s *Service) GetUnlockedRecipes(term string) ([]RecipeDetail, error) {
+	unlockedIDs, err := s.client.GetAccountRecipes()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(unlockedIDs) == 0 {
+		return nil, nil
+	}
+
+	recipes, err := s.client.GetRecipes(unlockedIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	cache, err := s.LoadCache()
+	if err != nil {
+		return nil, fmt.Errorf("item cache not found, run 'cache update' to build it")
+	}
+
+	cacheMap := make(map[int]string)
+	for _, item := range cache.Items {
+		cacheMap[item.ID] = item.Name
+	}
+
+	var results []RecipeDetail
+	term = strings.ToLower(term)
+
+	for _, r := range recipes {
+		name := cacheMap[r.OutputItemID]
+		if name == "" {
+			name = fmt.Sprintf("Unknown (%d)", r.OutputItemID)
+		}
+
+		if term != "" && !strings.Contains(strings.ToLower(name), term) {
+			continue
+		}
+
+		results = append(results, RecipeDetail{
+			ID:         r.ID,
+			OutputName: name,
+			Discipline: strings.Join(r.Disciplines, ", "),
+			Rating:     r.MinRating,
+		})
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].OutputName < results[j].OutputName
+	})
+
+	return results, nil
+}
+
+func (s *Service) SearchRecipesByIngredient(term string) ([]RecipeDetail, error) {
+	matchingItems, err := s.FindInCache(term)
+	if err != nil {
+		return nil, err
+	}
+
+	unlockedIDs, err := s.client.GetAccountRecipes()
+	if err != nil {
+		return nil, err
+	}
+
+	unlockedMap := make(map[int]bool)
+	for _, id := range unlockedIDs {
+		unlockedMap[id] = true
+	}
+
+	var allRecipeIDs []int
+	for _, item := range matchingItems {
+		ids, err := s.client.SearchRecipesByItem(item.ID, true)
+		if err == nil {
+			for _, id := range ids {
+				if unlockedMap[id] {
+					allRecipeIDs = append(allRecipeIDs, id)
+				}
+			}
+		}
+	}
+
+	if len(allRecipeIDs) == 0 {
+		return nil, nil
+	}
+
+	recipes, err := s.client.GetRecipes(allRecipeIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	cache, err := s.LoadCache()
+	if err != nil {
+		return nil, fmt.Errorf("item cache not found, run 'cache update' to build it")
+	}
+
+	cacheMap := make(map[int]string)
+	for _, item := range cache.Items {
+		cacheMap[item.ID] = item.Name
+	}
+
+	var results []RecipeDetail
+	for _, r := range recipes {
+		name := cacheMap[r.OutputItemID]
+		if name == "" {
+			name = fmt.Sprintf("Unknown (%d)", r.OutputItemID)
+		}
+
+		var ingredients []RecipeIngredientDetail
+		for _, ing := range r.Ingredients {
+			ingName := cacheMap[ing.ItemID]
+			if ingName == "" {
+				ingName = fmt.Sprintf("Unknown (%d)", ing.ItemID)
+			}
+			ingredients = append(ingredients, RecipeIngredientDetail{
+				ItemID: ing.ItemID,
+				Name:   ingName,
+				Count:  ing.Count,
+			})
+		}
+
+		results = append(results, RecipeDetail{
+			ID:          r.ID,
+			OutputName:  name,
+			Discipline:  strings.Join(r.Disciplines, ", "),
+			Rating:      r.MinRating,
+			Ingredients: ingredients,
+		})
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].OutputName < results[j].OutputName
+	})
+
+	return results, nil
+}

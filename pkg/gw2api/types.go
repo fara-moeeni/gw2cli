@@ -96,3 +96,16 @@ type LegendaryArmoryItem struct {
 	ID    int `json:"id"`
 	Count int `json:"count"`
 }
+
+type Ingredient struct {
+	ItemID int `json:"item_id"`
+	Count  int `json:"count"`
+}
+
+type Recipe struct {
+	ID           int          `json:"id"`
+	OutputItemID int          `json:"output_item_id"`
+	MinRating    int          `json:"min_rating"`
+	Disciplines  []string     `json:"disciplines"`
+	Ingredients  []Ingredient `json:"ingredients"`
+}
