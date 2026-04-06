@@ -591,3 +591,200 @@ func (c *Client) resolveEntities(path string, ids []int) ([]NamedEntity, error) 
 	}
 	return allItems, nil
 }
+
+func (c *Client) GetDailyAchievements() (*DailyAchievements, error) {
+	var dailies DailyAchievements
+	resp, err := c.rest.R().
+		SetResult(&dailies).
+		Get("/achievements/daily")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return &dailies, nil
+}
+
+func (c *Client) GetDailyAchievementsTomorrow() (*DailyAchievements, error) {
+	var dailies DailyAchievements
+	resp, err := c.rest.R().
+		SetResult(&dailies).
+		Get("/achievements/daily/tomorrow")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return &dailies, nil
+}
+
+func (c *Client) GetAchievements(ids []int) ([]Achievement, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	var allAchievements []Achievement
+	batchSize := 200
+
+	for i := 0; i < len(ids); i += batchSize {
+		end := i + batchSize
+		if end > len(ids) {
+			end = len(ids)
+		}
+
+		batch := ids[i:end]
+		var strIDs []string
+		for _, id := range batch {
+			strIDs = append(strIDs, strconv.Itoa(id))
+		}
+
+		var batchAchievements []Achievement
+		resp, err := c.rest.R().
+			SetQueryParam("ids", strings.Join(strIDs, ",")).
+			SetResult(&batchAchievements).
+			Get("/achievements")
+
+		if err != nil {
+			return allAchievements, err
+		}
+		if resp.IsError() {
+			return allAchievements, fmt.Errorf("API error: %s", resp.Status())
+		}
+		allAchievements = append(allAchievements, batchAchievements...)
+	}
+	return allAchievements, nil
+}
+
+func (c *Client) GetAccountWorldBosses() ([]string, error) {
+	var bosses []string
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&bosses).
+		Get("/account/worldbosses")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return bosses, nil
+}
+
+func (c *Client) GetAccountDungeons() ([]string, error) {
+	var dungeons []string
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&dungeons).
+		Get("/account/dungeons")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return dungeons, nil
+}
+
+func (c *Client) GetAccountRaids() ([]string, error) {
+	var raids []string
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&raids).
+		Get("/account/raids")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return raids, nil
+}
+
+func (c *Client) GetDungeons() ([]Dungeon, error) {
+	var dungeons []Dungeon
+	resp, err := c.rest.R().
+		SetQueryParam("ids", "all").
+		SetResult(&dungeons).
+		Get("/dungeons")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return dungeons, nil
+}
+
+func (c *Client) GetRaids() ([]Raid, error) {
+	var raids []Raid
+	resp, err := c.rest.R().
+		SetQueryParam("ids", "all").
+		SetResult(&raids).
+		Get("/raids")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return raids, nil
+}
+
+func (c *Client) GetWizardsVaultDaily() ([]WizardsVaultObjective, error) {
+	var response WizardsVaultResponse
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&response).
+		Get("/account/wizardsvault/daily")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return response.Objectives, nil
+}
+
+func (c *Client) GetWizardsVaultWeekly() ([]WizardsVaultObjective, error) {
+	var response WizardsVaultResponse
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&response).
+		Get("/account/wizardsvault/weekly")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return response.Objectives, nil
+}
+
+func (c *Client) GetWizardsVaultSpecial() ([]WizardsVaultObjective, error) {
+	var response WizardsVaultResponse
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&response).
+		Get("/account/wizardsvault/special")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return response.Objectives, nil
+}
+
+func (c *Client) GetWorldBossIDs() ([]string, error) {
+	var ids []string
+	resp, err := c.rest.R().Get("/worldbosses")
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return ids, nil
+}

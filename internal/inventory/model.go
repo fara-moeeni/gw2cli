@@ -52,3 +52,28 @@ type CollectionSummary struct {
 	Novelties int
 	Finishers int
 }
+
+type DailyStatus struct {
+	Name      string
+	Completed bool
+}
+
+type FractalDaily struct {
+	Name      string
+	Tier      string
+	Level     int
+	Completed bool
+}
+
+type WizardsVaultStatus struct {
+	Title        string
+	ProgressCur  int
+	ProgressGoal int
+	Acclaim      int
+	Completed    bool
+}
+
+type RaidWingStatus struct {
+	Name   string
+	Events []DailyStatus
+}

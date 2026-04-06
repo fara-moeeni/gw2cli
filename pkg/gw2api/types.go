@@ -120,3 +120,63 @@ type Skin struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
 }
+
+type DailyAchievement struct {
+	ID        int      `json:"id"`
+	Level     struct {
+		Min int `json:"min"`
+		Max int `json:"max"`
+	} `json:"level"`
+	RequiredAccess []string `json:"required_access"`
+}
+
+type DailyAchievements struct {
+	PVE      []DailyAchievement `json:"pve"`
+	PVP      []DailyAchievement `json:"pvp"`
+	WVW      []DailyAchievement `json:"wvw"`
+	Fractals []DailyAchievement `json:"fractals"`
+	Special  []DailyAchievement `json:"special"`
+}
+
+type Achievement struct {
+	ID          int      `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Requirement string   `json:"requirement"`
+	LockedText  string   `json:"locked_text"`
+	Type        string   `json:"type"`
+	Flags       []string `json:"flags"`
+}
+
+type Dungeon struct {
+	ID    string `json:"id"`
+	Paths []struct {
+		ID   string `json:"id"`
+		Type string `json:"type"`
+	} `json:"paths"`
+}
+
+type Raid struct {
+	ID    string `json:"id"`
+	Wings []struct {
+		ID     string `json:"id"`
+		Events []struct {
+			ID   string `json:"id"`
+			Type string `json:"type"`
+		} `json:"events"`
+	} `json:"wings"`
+}
+
+type WizardsVaultObjective struct {
+	ID            int    `json:"id"`
+	Title         string `json:"title"`
+	Track         string `json:"track"`
+	Acclaim       int    `json:"acclaim"`
+	ProgressCur   int    `json:"progress_current"`
+	ProgressGoal  int    `json:"progress_goal"`
+	Claimed       bool   `json:"claimed"`
+}
+
+type WizardsVaultResponse struct {
+	Objectives []WizardsVaultObjective `json:"objectives"`
+}

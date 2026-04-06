@@ -24,8 +24,107 @@ Commands:
   legendary  Manage Legendary Armory
   recipes    Search unlocked crafting recipes
   collection Manage account collections
+  daily      Track daily resets and objectives
+  weekly     Track weekly resets and raids
 
 Use "./gw2cli <command> -help" for more information on a command.`)
+}
+
+func PrintDailyHelp() {
+	fmt.Println(`
+Usage: ./gw2cli daily [subcommand]
+
+Description:
+  Track daily reset status for various account activities.
+
+Subcommands:
+  (default)     Summary of bosses, dungeons, fractals, and Wizard's Vault.
+  fractals      Today's fractal dailies and recommended.
+  bosses        World boss daily reset status.
+  wizardsvault  Daily Wizard's Vault objectives and progress.`)
+}
+
+func PrintWeeklyHelp() {
+	fmt.Println(`
+Usage: ./gw2cli weekly
+
+Description:
+  Track weekly reset status for raids and Wizard's Vault objectives.`)
+}
+
+func PrintDailyStatus(bosses, dungeons []inventory.DailyStatus) {
+	fmt.Println("\n--- Daily Reset Status ---")
+	fmt.Println("Daily reset: 00:00 UTC")
+
+	fmt.Println("\nWORLD BOSSES:")
+	for _, b := range bosses {
+		status := "[ ]"
+		if b.Completed {
+			status = "[✓]"
+		}
+		fmt.Printf(" %s %s\n", status, b.Name)
+	}
+
+	fmt.Println("\nDUNGEONS:")
+	for _, d := range dungeons {
+		status := "[ ]"
+		if d.Completed {
+			status = "[✓]"
+		}
+		fmt.Printf(" %s %s\n", status, d.Name)
+	}
+}
+
+func PrintFractalDailies(fractals []inventory.FractalDaily) {
+	fmt.Println("\n--- Daily Fractals ---")
+	fmt.Println("Daily reset: 00:00 UTC")
+
+	for _, f := range fractals {
+		status := "[ ]"
+		if f.Completed {
+			status = "[✓]"
+		}
+		fmt.Printf(" %s %-5s %s\n", status, f.Tier, f.Name)
+	}
+}
+
+func PrintWizardsVault(objectives []inventory.WizardsVaultStatus, title string) {
+	fmt.Printf("\n--- Wizard's Vault: %s ---\n", title)
+	if title == "Weekly" {
+		fmt.Println("Weekly reset: Tuesday 00:00 UTC")
+	} else {
+		fmt.Println("Daily reset: 00:00 UTC")
+	}
+
+	fmt.Printf("\n%-45s %-10s %-8s %s\n", "Objective", "Progress", "Acclaim", "Status")
+	fmt.Println("----------------------------------------------------------------------------")
+	for _, o := range objectives {
+		status := "[ ]"
+		if o.Completed {
+			status = "[✓]"
+		}
+		prog := fmt.Sprintf("%d/%d", o.ProgressCur, o.ProgressGoal)
+		fmt.Printf("%-45s %-10s %-8d %s\n", o.Title, prog, o.Acclaim, status)
+	}
+}
+
+func PrintRaidStatus(wings []inventory.RaidWingStatus) {
+	fmt.Println("\n--- Weekly Raid Status ---")
+	fmt.Println("Weekly reset: Tuesday 00:00 UTC")
+
+	for _, wing := range wings {
+		fmt.Printf("\n%s:\n", wing.Name)
+		for _, event := range wing.Events {
+			status := "[ ]"
+			if event.Completed {
+				status = "[✓]"
+			}
+			fmt.Printf(" %s %s\n", status, event.Name)
+		}
+	}
+	
+	fmt.Println("\nOTHERS:")
+	fmt.Println(" Convergences: rotation not available via API — check https://wiki.guildwars2.com/wiki/Convergences")
 }
 
 func PrintCollectionHelp() {
