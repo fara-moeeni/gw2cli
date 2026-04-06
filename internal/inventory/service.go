@@ -361,3 +361,170 @@ func (s *Service) SearchRecipesByIngredient(term string) ([]RecipeDetail, error)
 
 	return results, nil
 }
+
+func (s *Service) GetCollectionSummary() (*CollectionSummary, error) {
+	var wg sync.WaitGroup
+	var skins, dyes, minis, mountSkins, outfits, novelties, finishers []int
+	var mountTypes []string
+	var errSkins, errDyes, errMinis, errMountSkins, errMountTypes, errOutfits, errNovelties, errFinishers error
+
+	wg.Add(8)
+	go func() { defer wg.Done(); skins, errSkins = s.client.GetAccountSkins() }()
+	go func() { defer wg.Done(); dyes, errDyes = s.client.GetAccountDyes() }()
+	go func() { defer wg.Done(); minis, errMinis = s.client.GetAccountMinis() }()
+	go func() { defer wg.Done(); mountSkins, errMountSkins = s.client.GetAccountMountSkins() }()
+	go func() { defer wg.Done(); mountTypes, errMountTypes = s.client.GetAccountMountTypes() }()
+	go func() { defer wg.Done(); outfits, errOutfits = s.client.GetAccountOutfits() }()
+	go func() { defer wg.Done(); novelties, errNovelties = s.client.GetAccountNovelties() }()
+	go func() { defer wg.Done(); finishers, errFinishers = s.client.GetAccountFinishers() }()
+	wg.Wait()
+
+	if errSkins != nil || errDyes != nil || errMinis != nil || errMountSkins != nil || errMountTypes != nil || errOutfits != nil || errNovelties != nil || errFinishers != nil {
+		return nil, fmt.Errorf("failed to fetch collection data")
+	}
+
+	return &CollectionSummary{
+		Skins:     len(skins),
+		Dyes:      len(dyes),
+		Minis:     len(minis),
+		Mounts:    len(mountSkins) + len(mountTypes),
+		Outfits:   len(outfits),
+		Novelties: len(novelties),
+		Finishers: len(finishers),
+	}, nil
+}
+
+func (s *Service) GetCollectionSkins(term string) ([]CollectionItem, error) {
+	ids, err := s.client.GetAccountSkins()
+	if err != nil {
+		return nil, err
+	}
+	resolved, err := s.client.ResolveSkins(ids)
+	if err != nil {
+		return nil, err
+	}
+	var items []CollectionItem
+	for _, r := range resolved {
+		items = append(items, CollectionItem{Name: r.Name, Type: r.Type})
+	}
+	return s.filterAndSort(items, term), nil
+}
+
+func (s *Service) GetCollectionDyes(term string) ([]CollectionItem, error) {
+	ids, err := s.client.GetAccountDyes()
+	if err != nil {
+		return nil, err
+	}
+	resolved, err := s.client.ResolveColors(ids)
+	if err != nil {
+		return nil, err
+	}
+	var items []CollectionItem
+	for _, r := range resolved {
+		items = append(items, CollectionItem{Name: r.Name})
+	}
+	return s.filterAndSort(items, term), nil
+}
+
+func (s *Service) GetCollectionMinis(term string) ([]CollectionItem, error) {
+	ids, err := s.client.GetAccountMinis()
+	if err != nil {
+		return nil, err
+	}
+	resolved, err := s.client.ResolveMinis(ids)
+	if err != nil {
+		return nil, err
+	}
+	var items []CollectionItem
+	for _, r := range resolved {
+		items = append(items, CollectionItem{Name: r.Name})
+	}
+	return s.filterAndSort(items, term), nil
+}
+
+func (s *Service) GetCollectionMounts(term string) ([]CollectionItem, error) {
+	ids, err := s.client.GetAccountMountSkins()
+	if err != nil {
+		return nil, err
+	}
+	resolved, err := s.client.ResolveMountSkins(ids)
+	if err != nil {
+		return nil, err
+	}
+	types, err := s.client.GetAccountMountTypes()
+	if err != nil {
+		return nil, err
+	}
+	var items []CollectionItem
+	for _, r := range resolved {
+		items = append(items, CollectionItem{Name: r.Name, Type: "Skin"})
+	}
+	for _, t := range types {
+		// Capitalize mount type
+		name := strings.ToUpper(t[:1]) + t[1:]
+		items = append(items, CollectionItem{Name: name, Type: "Type"})
+	}
+	return s.filterAndSort(items, term), nil
+}
+
+func (s *Service) GetCollectionOutfits(term string) ([]CollectionItem, error) {
+	ids, err := s.client.GetAccountOutfits()
+	if err != nil {
+		return nil, err
+	}
+	resolved, err := s.client.ResolveOutfits(ids)
+	if err != nil {
+		return nil, err
+	}
+	var items []CollectionItem
+	for _, r := range resolved {
+		items = append(items, CollectionItem{Name: r.Name})
+	}
+	return s.filterAndSort(items, term), nil
+}
+
+func (s *Service) GetCollectionNovelties(term string) ([]CollectionItem, error) {
+	ids, err := s.client.GetAccountNovelties()
+	if err != nil {
+		return nil, err
+	}
+	resolved, err := s.client.ResolveNovelties(ids)
+	if err != nil {
+		return nil, err
+	}
+	var items []CollectionItem
+	for _, r := range resolved {
+		items = append(items, CollectionItem{Name: r.Name})
+	}
+	return s.filterAndSort(items, term), nil
+}
+
+func (s *Service) GetCollectionFinishers(term string) ([]CollectionItem, error) {
+	ids, err := s.client.GetAccountFinishers()
+	if err != nil {
+		return nil, err
+	}
+	resolved, err := s.client.ResolveFinishers(ids)
+	if err != nil {
+		return nil, err
+	}
+	var items []CollectionItem
+	for _, r := range resolved {
+		items = append(items, CollectionItem{Name: r.Name})
+	}
+	return s.filterAndSort(items, term), nil
+}
+
+func (s *Service) filterAndSort(items []CollectionItem, term string) []CollectionItem {
+	var filtered []CollectionItem
+	term = strings.ToLower(term)
+	for _, item := range items {
+		if term == "" || strings.Contains(strings.ToLower(item.Name), term) {
+			filtered = append(filtered, item)
+		}
+	}
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].Name < filtered[j].Name
+	})
+	return filtered
+}

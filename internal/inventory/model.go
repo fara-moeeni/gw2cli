@@ -37,3 +37,18 @@ type RecipeDetail struct {
 	Rating      int
 	Ingredients []RecipeIngredientDetail
 }
+
+type CollectionItem struct {
+	Name string
+	Type string
+}
+
+type CollectionSummary struct {
+	Skins     int
+	Dyes      int
+	Minis     int
+	Mounts    int
+	Outfits   int
+	Novelties int
+	Finishers int
+}
