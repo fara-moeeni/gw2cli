@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	"gw2cli/internal/inventory"
 )
@@ -21,8 +22,51 @@ Commands:
   exchange   Gem/Coin exchange rates
   cache      Manage local item database
   legendary  Manage Legendary Armory
+  recipes    Search unlocked crafting recipes
 
 Use "./gw2cli <command> -help" for more information on a command.`)
+}
+
+func PrintRecipesHelp() {
+	fmt.Println(`
+Usage: ./gw2cli recipes [subcommand] [arguments]
+
+Subcommands:
+  (default)          List all unlocked crafting recipes.
+  find <term>        Filter unlocked recipes by partial item name.
+  ingredient <term>  Find unlocked recipes that use a specific ingredient.`)
+}
+
+func PrintRecipes(recipes []inventory.RecipeDetail) {
+	if len(recipes) == 0 {
+		fmt.Println("no recipes unlocked on this account")
+		return
+	}
+
+	fmt.Println("\n--- Unlocked Crafting Recipes ---")
+	fmt.Printf("%-35s %-25s %-5s\n", "Name", "Discipline", "Rating")
+	fmt.Println("----------------------------------------------------------------------")
+	for _, r := range recipes {
+		fmt.Printf("%-35s %-25s %-5d\n", r.OutputName, r.Discipline, r.Rating)
+	}
+}
+
+func PrintRecipeIngredientResults(recipes []inventory.RecipeDetail) {
+	if len(recipes) == 0 {
+		fmt.Println("no matching unlocked recipes found using this ingredient")
+		return
+	}
+
+	fmt.Println("\n--- Unlocked Recipes Using Ingredient ---")
+	fmt.Printf("%-30s %-20s %-7s %s\n", "Name", "Discipline", "Rating", "Ingredients")
+	fmt.Println("-----------------------------------------------------------------------------------------------")
+	for _, r := range recipes {
+		var ings []string
+		for _, ing := range r.Ingredients {
+			ings = append(ings, fmt.Sprintf("%s (x%d)", ing.Name, ing.Count))
+		}
+		fmt.Printf("%-30s %-20s %-7d %s\n", r.OutputName, r.Discipline, r.Rating, strings.Join(ings, ", "))
+	}
 }
 
 func PrintLegendaryHelp() {

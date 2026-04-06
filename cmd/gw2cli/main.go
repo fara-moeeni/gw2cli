@@ -13,7 +13,7 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "2.0.0"
+const Version = "2.2.0"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -32,6 +32,7 @@ func main() {
 	exchangeCmd := flag.NewFlagSet("exchange", flag.ExitOnError)
 	cacheCmd := flag.NewFlagSet("cache", flag.ExitOnError)
 	legendaryCmd := flag.NewFlagSet("legendary", flag.ExitOnError)
+	recipesCmd := flag.NewFlagSet("recipes", flag.ExitOnError)
 
 	// Configure usages
 	searchCmd.Usage = ui.PrintSearchHelp
@@ -40,6 +41,7 @@ func main() {
 	exchangeCmd.Usage = ui.PrintExchangeHelp
 	cacheCmd.Usage = ui.PrintCacheHelp
 	legendaryCmd.Usage = ui.PrintLegendaryHelp
+	recipesCmd.Usage = ui.PrintRecipesHelp
 
 	verbose := false
 	for _, arg := range os.Args {
@@ -164,6 +166,47 @@ func main() {
 			log.Fatalf("Error: %v", err)
 		}
 		ui.PrintLegendaryArmory(items)
+
+	case "recipes":
+		recipesCmd.Parse(os.Args[2:])
+		requireAPIKey(apiKey)
+		if err := invService.CheckCacheStatus(); err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+
+		if recipesCmd.NArg() == 0 {
+			fmt.Println("Fetching recipes...")
+			recipes, err := invService.GetUnlockedRecipes("")
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+			ui.PrintRecipes(recipes)
+		} else {
+			switch recipesCmd.Arg(0) {
+			case "find":
+				if recipesCmd.NArg() < 2 {
+					log.Fatal("Usage: recipes find <term>")
+				}
+				fmt.Println("Searching recipes...")
+				recipes, err := invService.GetUnlockedRecipes(strings.Join(recipesCmd.Args()[1:], " "))
+				if err != nil {
+					log.Fatalf("Error: %v", err)
+				}
+				ui.PrintRecipes(recipes)
+			case "ingredient":
+				if recipesCmd.NArg() < 2 {
+					log.Fatal("Usage: recipes ingredient <term>")
+				}
+				fmt.Println("Searching recipes by ingredient...")
+				recipes, err := invService.SearchRecipesByIngredient(strings.Join(recipesCmd.Args()[1:], " "))
+				if err != nil {
+					log.Fatalf("Error: %v", err)
+				}
+				ui.PrintRecipeIngredientResults(recipes)
+			default:
+				ui.PrintRecipesHelp()
+			}
+		}
 
 	case "exchange":
 		exchangeCmd.Parse(os.Args[2:])

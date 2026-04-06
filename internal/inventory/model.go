@@ -23,3 +23,17 @@ func (i *ItemDetail) TotalCount() int {
 	}
 	return total
 }
+
+type RecipeIngredientDetail struct {
+	ItemID int
+	Name   string
+	Count  int
+}
+
+type RecipeDetail struct {
+	ID          int
+	OutputName  string
+	Discipline  string
+	Rating      int
+	Ingredients []RecipeIngredientDetail
+}

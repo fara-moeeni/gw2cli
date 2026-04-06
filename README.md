@@ -148,6 +148,18 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 ./gw2cli cache find "Twilight"
 ```
 
+**Search unlocked crafting recipes:**
+```bash
+# List all unlocked recipes
+./gw2cli recipes
+
+# Search unlocked recipes by output item name
+./gw2cli recipes find "Deldrimor"
+
+# Find unlocked recipes that use a specific ingredient
+./gw2cli recipes ingredient "Ectoplasm"
+```
+
 ---
 
 ## Project Structure
