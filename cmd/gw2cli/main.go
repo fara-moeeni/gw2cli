@@ -13,36 +13,37 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "2.2.0"
+const Version = "2.3.0"
 
 func main() {
-	if len(os.Args) < 2 {
-		ui.PrintGlobalHelp()
-		return
-	}
+        if len(os.Args) < 2 {
+                ui.PrintGlobalHelp()
+                return
+        }
 
-	// Define Subcommands
-	searchCmd := flag.NewFlagSet("search", flag.ExitOnError)
-	searchType := searchCmd.String("type", "", "Filter by strict Item Type")
-	searchChar := searchCmd.String("character", "", "Search by Character Name or Location")
+        // Define Subcommands
+        searchCmd := flag.NewFlagSet("search", flag.ExitOnError)
+        searchType := searchCmd.String("type", "", "Filter by strict Item Type")
+        searchChar := searchCmd.String("character", "", "Search by Character Name or Location")
 
-	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
-	walletCmd := flag.NewFlagSet("wallet", flag.ExitOnError)
-	tpCmd := flag.NewFlagSet("tp", flag.ExitOnError)
-	exchangeCmd := flag.NewFlagSet("exchange", flag.ExitOnError)
-	cacheCmd := flag.NewFlagSet("cache", flag.ExitOnError)
-	legendaryCmd := flag.NewFlagSet("legendary", flag.ExitOnError)
-	recipesCmd := flag.NewFlagSet("recipes", flag.ExitOnError)
+        listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+        walletCmd := flag.NewFlagSet("wallet", flag.ExitOnError)
+        tpCmd := flag.NewFlagSet("tp", flag.ExitOnError)
+        exchangeCmd := flag.NewFlagSet("exchange", flag.ExitOnError)
+        cacheCmd := flag.NewFlagSet("cache", flag.ExitOnError)
+        legendaryCmd := flag.NewFlagSet("legendary", flag.ExitOnError)
+        recipesCmd := flag.NewFlagSet("recipes", flag.ExitOnError)
+        collectionCmd := flag.NewFlagSet("collection", flag.ExitOnError)
 
-	// Configure usages
-	searchCmd.Usage = ui.PrintSearchHelp
-	listCmd.Usage = ui.PrintListHelp
-	tpCmd.Usage = ui.PrintTPHelp
-	exchangeCmd.Usage = ui.PrintExchangeHelp
-	cacheCmd.Usage = ui.PrintCacheHelp
-	legendaryCmd.Usage = ui.PrintLegendaryHelp
-	recipesCmd.Usage = ui.PrintRecipesHelp
-
+        // Configure usages
+        searchCmd.Usage = ui.PrintSearchHelp
+        listCmd.Usage = ui.PrintListHelp
+        tpCmd.Usage = ui.PrintTPHelp
+        exchangeCmd.Usage = ui.PrintExchangeHelp
+        cacheCmd.Usage = ui.PrintCacheHelp
+        legendaryCmd.Usage = ui.PrintLegendaryHelp
+        recipesCmd.Usage = ui.PrintRecipesHelp
+        collectionCmd.Usage = ui.PrintCollectionHelp
 	verbose := false
 	for _, arg := range os.Args {
 		if arg == "-verbose" {
@@ -206,9 +207,57 @@ func main() {
 			default:
 				ui.PrintRecipesHelp()
 			}
-		}
+			}
 
-	case "exchange":
+			case "collection":
+			collectionCmd.Parse(os.Args[2:])
+			requireAPIKey(apiKey)
+			if collectionCmd.NArg() == 0 {
+			fmt.Println("Fetching collection summary...")
+			summary, err := invService.GetCollectionSummary()
+			if err != nil {
+			        log.Fatalf("Error: %v", err)
+			}
+			ui.PrintCollectionSummary(summary)
+			} else {
+			sub := collectionCmd.Arg(0)
+			filter := ""
+			if collectionCmd.NArg() > 1 {
+			        filter = strings.Join(collectionCmd.Args()[1:], " ")
+			}
+
+			fmt.Printf("Fetching %s...\n", sub)
+			var items []inventory.CollectionItem
+			var err error
+
+			switch sub {
+			case "skins":
+			        items, err = invService.GetCollectionSkins(filter)
+			case "dyes":
+			        items, err = invService.GetCollectionDyes(filter)
+			case "minis":
+			        items, err = invService.GetCollectionMinis(filter)
+			case "mounts":
+			        items, err = invService.GetCollectionMounts(filter)
+			case "outfits":
+			        items, err = invService.GetCollectionOutfits(filter)
+			case "novelties":
+			        items, err = invService.GetCollectionNovelties(filter)
+			case "finishers":
+			        items, err = invService.GetCollectionFinishers(filter)
+			default:
+			        ui.PrintCollectionHelp()
+			        return
+			}
+
+			if err != nil {
+			        log.Fatalf("Error: %v", err)
+			}
+			ui.PrintCollectionItems(items, sub)
+			}
+
+			case "exchange":
+
 		exchangeCmd.Parse(os.Args[2:])
 		if exchangeCmd.NArg() == 0 {
 			g2c, _ := invService.GetExchangeRate(100, true)

@@ -23,8 +23,69 @@ Commands:
   cache      Manage local item database
   legendary  Manage Legendary Armory
   recipes    Search unlocked crafting recipes
+  collection Manage account collections
 
 Use "./gw2cli <command> -help" for more information on a command.`)
+}
+
+func PrintCollectionHelp() {
+	fmt.Println(`
+Usage: ./gw2cli collection [subcommand] [filter]
+
+Subcommands:
+  (default)   Show summary of all collections.
+  skins       List unlocked skins.
+  dyes        List unlocked dyes.
+  minis       List unlocked miniatures.
+  mounts      List unlocked mount skins and types.
+  outfits     List unlocked outfits.
+  novelties   List unlocked novelties.
+  finishers   List unlocked finishers.
+
+Arguments:
+  filter      (Optional) Filter results by a partial name.`)
+}
+
+func PrintCollectionSummary(summary *inventory.CollectionSummary) {
+	fmt.Println("\n--- Account Collections Summary ---")
+	fmt.Printf("Skins:     %d unlocked\n", summary.Skins)
+	fmt.Printf("Dyes:      %d unlocked\n", summary.Dyes)
+	fmt.Printf("Minis:     %d unlocked\n", summary.Minis)
+	fmt.Printf("Mounts:    %d unlocked\n", summary.Mounts)
+	fmt.Printf("Outfits:   %d unlocked\n", summary.Outfits)
+	fmt.Printf("Novelties: %d unlocked\n", summary.Novelties)
+	fmt.Printf("Finishers: %d unlocked\n", summary.Finishers)
+}
+
+func PrintCollectionItems(items []inventory.CollectionItem, collectionType string) {
+	if len(items) == 0 {
+		fmt.Printf("no %s unlocked on this account\n", collectionType)
+		return
+	}
+
+	fmt.Printf("\n--- Unlocked %s ---\n", collectionType)
+	hasType := false
+	for _, item := range items {
+		if item.Type != "" {
+			hasType = true
+			break
+		}
+	}
+
+	if hasType {
+		fmt.Printf("%-40s %-20s\n", "Name", "Type")
+		fmt.Println("------------------------------------------------------------")
+		for _, item := range items {
+			fmt.Printf("%-40s %-20s\n", item.Name, item.Type)
+		}
+	} else {
+		fmt.Println("Name")
+		fmt.Println("------------------------------------------------------------")
+		for _, item := range items {
+			fmt.Println(item.Name)
+		}
+	}
+	fmt.Printf("\nTotal: %d\n", len(items))
 }
 
 func PrintRecipesHelp() {

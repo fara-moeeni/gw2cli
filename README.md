@@ -160,6 +160,21 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 ./gw2cli recipes ingredient "Ectoplasm"
 ```
 
+**Check account collections:**
+```bash
+# Show summary of all collections
+./gw2cli collection
+
+# List all unlocked minis
+./gw2cli collection minis
+
+# Search for "Dragon" skins
+./gw2cli collection skins "Dragon"
+
+# List unlocked dyes
+./gw2cli collection dyes
+```
+
 ---
 
 ## Project Structure

@@ -414,3 +414,180 @@ func (c *Client) SearchRecipesByItem(itemID int, input bool) ([]int, error) {
 	}
 	return ids, nil
 }
+
+func (c *Client) GetAccountSkins() ([]int, error) {
+	return c.getAccountIDs("/account/skins")
+}
+
+func (c *Client) GetAccountDyes() ([]int, error) {
+	return c.getAccountIDs("/account/dyes")
+}
+
+func (c *Client) GetAccountMinis() ([]int, error) {
+	return c.getAccountIDs("/account/minis")
+}
+
+func (c *Client) GetAccountMountSkins() ([]int, error) {
+	return c.getAccountIDs("/account/mounts/skins")
+}
+
+func (c *Client) GetAccountMountTypes() ([]string, error) {
+	var types []string
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&types).
+		Get("/account/mounts/types")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return types, nil
+}
+
+func (c *Client) GetAccountOutfits() ([]int, error) {
+	return c.getAccountIDs("/account/outfits")
+}
+
+func (c *Client) GetAccountNovelties() ([]int, error) {
+	return c.getAccountIDs("/account/novelties")
+}
+
+func (c *Client) GetAccountFinishers() ([]int, error) {
+	var finishers []struct {
+		ID int `json:"id"`
+	}
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&finishers).
+		Get("/account/finishers")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+
+	var ids []int
+	for _, f := range finishers {
+		ids = append(ids, f.ID)
+	}
+	return ids, nil
+}
+
+func (c *Client) ResolveSkins(ids []int) ([]Skin, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	var allSkins []Skin
+	batchSize := 200
+
+	for i := 0; i < len(ids); i += batchSize {
+		end := i + batchSize
+		if end > len(ids) {
+			end = len(ids)
+		}
+
+		batch := ids[i:end]
+		var strIDs []string
+		for _, id := range batch {
+			strIDs = append(strIDs, strconv.Itoa(id))
+		}
+
+		var batchSkins []Skin
+		resp, err := c.rest.R().
+			SetQueryParam("ids", strings.Join(strIDs, ",")).
+			SetResult(&batchSkins).
+			Get("/skins")
+
+		if err != nil {
+			return allSkins, err
+		}
+		if resp.IsError() {
+			return allSkins, fmt.Errorf("API error: %s", resp.Status())
+		}
+		allSkins = append(allSkins, batchSkins...)
+	}
+	return allSkins, nil
+}
+
+func (c *Client) ResolveColors(ids []int) ([]NamedEntity, error) {
+	return c.resolveEntities("/colors", ids)
+}
+
+func (c *Client) ResolveMinis(ids []int) ([]NamedEntity, error) {
+	return c.resolveEntities("/minis", ids)
+}
+
+func (c *Client) ResolveMountSkins(ids []int) ([]NamedEntity, error) {
+	return c.resolveEntities("/mounts/skins", ids)
+}
+
+func (c *Client) ResolveOutfits(ids []int) ([]NamedEntity, error) {
+	return c.resolveEntities("/outfits", ids)
+}
+
+func (c *Client) ResolveNovelties(ids []int) ([]NamedEntity, error) {
+	return c.resolveEntities("/novelties", ids)
+}
+
+func (c *Client) ResolveFinishers(ids []int) ([]NamedEntity, error) {
+	return c.resolveEntities("/finishers", ids)
+}
+
+func (c *Client) getAccountIDs(path string) ([]int, error) {
+	var ids []int
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&ids).
+		Get(path)
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return ids, nil
+}
+
+func (c *Client) resolveEntities(path string, ids []int) ([]NamedEntity, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	var allItems []NamedEntity
+	batchSize := 200
+
+	for i := 0; i < len(ids); i += batchSize {
+		end := i + batchSize
+		if end > len(ids) {
+			end = len(ids)
+		}
+
+		batch := ids[i:end]
+		var strIDs []string
+		for _, id := range batch {
+			strIDs = append(strIDs, strconv.Itoa(id))
+		}
+
+		var batchItems []NamedEntity
+		resp, err := c.rest.R().
+			SetQueryParam("ids", strings.Join(strIDs, ",")).
+			SetResult(&batchItems).
+			Get(path)
+
+		if err != nil {
+			return allItems, err
+		}
+		if resp.IsError() {
+			return allItems, fmt.Errorf("API error: %s", resp.Status())
+		}
+		allItems = append(allItems, batchItems...)
+	}
+	return allItems, nil
+}

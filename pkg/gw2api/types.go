@@ -109,3 +109,14 @@ type Recipe struct {
 	Disciplines  []string     `json:"disciplines"`
 	Ingredients  []Ingredient `json:"ingredients"`
 }
+
+type NamedEntity struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+type Skin struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
