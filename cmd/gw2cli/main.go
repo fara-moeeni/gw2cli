@@ -13,7 +13,7 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "2.3.0"
+const Version = "2.4.0"
 
 func main() {
         if len(os.Args) < 2 {
@@ -34,6 +34,8 @@ func main() {
         legendaryCmd := flag.NewFlagSet("legendary", flag.ExitOnError)
         recipesCmd := flag.NewFlagSet("recipes", flag.ExitOnError)
         collectionCmd := flag.NewFlagSet("collection", flag.ExitOnError)
+        dailyCmd := flag.NewFlagSet("daily", flag.ExitOnError)
+        weeklyCmd := flag.NewFlagSet("weekly", flag.ExitOnError)
 
         // Configure usages
         searchCmd.Usage = ui.PrintSearchHelp
@@ -44,6 +46,8 @@ func main() {
         legendaryCmd.Usage = ui.PrintLegendaryHelp
         recipesCmd.Usage = ui.PrintRecipesHelp
         collectionCmd.Usage = ui.PrintCollectionHelp
+        dailyCmd.Usage = ui.PrintDailyHelp
+        weeklyCmd.Usage = ui.PrintWeeklyHelp
 	verbose := false
 	for _, arg := range os.Args {
 		if arg == "-verbose" {
@@ -256,8 +260,47 @@ func main() {
 			ui.PrintCollectionItems(items, sub)
 			}
 
-			case "exchange":
+			case "daily":
+			dailyCmd.Parse(os.Args[2:])
+			requireAPIKey(apiKey)
+			if dailyCmd.NArg() == 0 {
+			fmt.Println("Fetching daily status...")
+			bosses, _ := invService.GetDailyBosses()
+			dungeons, _ := invService.GetDailyDungeons()
+			ui.PrintDailyStatus(bosses, dungeons)
 
+			fractals, _ := invService.GetDailyFractals()
+			ui.PrintFractalDailies(fractals)
+
+			wv, _ := invService.GetDailyWizardsVault()
+			ui.PrintWizardsVault(wv, "Daily")
+			} else {
+			switch dailyCmd.Arg(0) {
+			case "fractals":
+			        fractals, _ := invService.GetDailyFractals()
+			        ui.PrintFractalDailies(fractals)
+			case "bosses":
+			        bosses, _ := invService.GetDailyBosses()
+			        ui.PrintDailyStatus(bosses, nil)
+			case "wizardsvault":
+			        wv, _ := invService.GetDailyWizardsVault()
+			        ui.PrintWizardsVault(wv, "Daily")
+			default:
+			        ui.PrintDailyHelp()
+			}
+			}
+
+			case "weekly":
+			weeklyCmd.Parse(os.Args[2:])
+			requireAPIKey(apiKey)
+			fmt.Println("Fetching weekly status...")
+			raids, _ := invService.GetWeeklyRaids()
+			ui.PrintRaidStatus(raids)
+
+			wv, _ := invService.GetWeeklyWizardsVault()
+			ui.PrintWizardsVault(wv, "Weekly")
+
+			case "exchange":
 		exchangeCmd.Parse(os.Args[2:])
 		if exchangeCmd.NArg() == 0 {
 			g2c, _ := invService.GetExchangeRate(100, true)

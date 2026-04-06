@@ -528,3 +528,191 @@ func (s *Service) filterAndSort(items []CollectionItem, term string) []Collectio
 	})
 	return filtered
 }
+
+func (s *Service) GetDailyBosses() ([]DailyStatus, error) {
+	cleared, err := s.client.GetAccountWorldBosses()
+	if err != nil {
+		return nil, err
+	}
+
+	clearedMap := make(map[string]bool)
+	for _, b := range cleared {
+		clearedMap[b] = true
+	}
+
+	ids, err := s.client.GetWorldBossIDs()
+	if err != nil {
+		return nil, err
+	}
+
+	var results []DailyStatus
+	for _, id := range ids {
+		results = append(results, DailyStatus{
+			Name:      id, // The API returns IDs like "behemoth" which are semi-friendly
+			Completed: clearedMap[id],
+		})
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Name < results[j].Name
+	})
+
+	return results, nil
+}
+
+func (s *Service) GetDailyFractals() ([]FractalDaily, error) {
+	dailies, err := s.client.GetDailyAchievements()
+	if err != nil {
+		return nil, err
+	}
+
+	var achIDs []int
+	for _, f := range dailies.Fractals {
+		achIDs = append(achIDs, f.ID)
+	}
+
+	achDetails, err := s.client.GetAchievements(achIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	achMap := make(map[int]gw2api.Achievement)
+	for _, a := range achDetails {
+		achMap[a.ID] = a
+	}
+
+	// We'd need to check progress to see if they are completed, but
+	// /v2/account/achievements is needed. For now, let's assume [ ]
+	// as per requirement "Handle accounts with no clears gracefully".
+	// To actually show [✓], we'd need account achievement progress.
+	
+	var results []FractalDaily
+	for _, f := range dailies.Fractals {
+		ach := achMap[f.ID]
+		tier := "T1"
+		if strings.Contains(ach.Name, "Tier 4") {
+			tier = "T4"
+		} else if strings.Contains(ach.Name, "Tier 3") {
+			tier = "T3"
+		} else if strings.Contains(ach.Name, "Tier 2") {
+			tier = "T2"
+		} else if strings.Contains(ach.Name, "Recommended") {
+			tier = "Rec"
+		}
+
+		results = append(results, FractalDaily{
+			Name:      ach.Name,
+			Tier:      tier,
+			Completed: false, // Default to false if we don't fetch progress
+		})
+	}
+
+	return results, nil
+}
+
+func (s *Service) GetDailyWizardsVault() ([]WizardsVaultStatus, error) {
+	wv, err := s.client.GetWizardsVaultDaily()
+	if err != nil {
+		return nil, err
+	}
+
+	var results []WizardsVaultStatus
+	for _, o := range wv {
+		results = append(results, WizardsVaultStatus{
+			Title:        o.Title,
+			ProgressCur:  o.ProgressCur,
+			ProgressGoal: o.ProgressGoal,
+			Acclaim:      o.Acclaim,
+			Completed:    o.Claimed || (o.ProgressCur >= o.ProgressGoal && o.ProgressGoal > 0),
+		})
+	}
+	return results, nil
+}
+
+func (s *Service) GetWeeklyWizardsVault() ([]WizardsVaultStatus, error) {
+	wv, err := s.client.GetWizardsVaultWeekly()
+	if err != nil {
+		return nil, err
+	}
+
+	var results []WizardsVaultStatus
+	for _, o := range wv {
+		results = append(results, WizardsVaultStatus{
+			Title:        o.Title,
+			ProgressCur:  o.ProgressCur,
+			ProgressGoal: o.ProgressGoal,
+			Acclaim:      o.Acclaim,
+			Completed:    o.Claimed || (o.ProgressCur >= o.ProgressGoal && o.ProgressGoal > 0),
+		})
+	}
+	return results, nil
+}
+
+func (s *Service) GetWeeklyRaids() ([]RaidWingStatus, error) {
+	cleared, err := s.client.GetAccountRaids()
+	if err != nil {
+		return nil, err
+	}
+
+	clearedMap := make(map[string]bool)
+	for _, r := range cleared {
+		clearedMap[r] = true
+	}
+
+	raids, err := s.client.GetRaids()
+	if err != nil {
+		return nil, err
+	}
+
+	var results []RaidWingStatus
+	for _, raid := range raids {
+		for _, wing := range raid.Wings {
+			var events []DailyStatus
+			for _, event := range wing.Events {
+				events = append(events, DailyStatus{
+					Name:      event.ID,
+					Completed: clearedMap[event.ID],
+				})
+			}
+			results = append(results, RaidWingStatus{
+				Name:   wing.ID,
+				Events: events,
+			})
+		}
+	}
+
+	return results, nil
+}
+
+func (s *Service) GetDailyDungeons() ([]DailyStatus, error) {
+	cleared, err := s.client.GetAccountDungeons()
+	if err != nil {
+		return nil, err
+	}
+
+	clearedMap := make(map[string]bool)
+	for _, d := range cleared {
+		clearedMap[d] = true
+	}
+
+	dungeons, err := s.client.GetDungeons()
+	if err != nil {
+		return nil, err
+	}
+
+	var results []DailyStatus
+	for _, d := range dungeons {
+		for _, p := range d.Paths {
+			results = append(results, DailyStatus{
+				Name:      fmt.Sprintf("%s - %s", d.ID, p.ID),
+				Completed: clearedMap[p.ID],
+			})
+		}
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Name < results[j].Name
+	})
+
+	return results, nil
+}

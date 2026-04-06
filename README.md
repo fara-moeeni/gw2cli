@@ -175,6 +175,25 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 ./gw2cli collection dyes
 ```
 
+**Track daily and weekly activities:**
+```bash
+# Show daily summary (Bosses, Dungeons, Fractals, Wizard's Vault)
+./gw2cli daily
+
+# Show only today's fractal dailies
+./gw2cli daily fractals
+
+# Show only world boss daily reset status
+./gw2cli daily bosses
+
+# Show daily Wizard's Vault objectives
+./gw2cli daily wizardsvault
+
+# Show weekly summary (Raids, Wizard's Vault weekly)
+./gw2cli weekly
+```
+Note: Convergences rotation is not available via the API — check [https://wiki.guildwars2.com/wiki/Convergences](https://wiki.guildwars2.com/wiki/Convergences)
+
 ---
 
 ## Project Structure
