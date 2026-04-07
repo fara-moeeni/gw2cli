@@ -17,6 +17,9 @@ As the project evolves, new chapters will be added here to document architectura
 3. [CLI Flags & Formatting](03_cli_flags_and_formatting.md) - The standard `flag` package and console output.
 4. [File I/O & Caching](04_file_io_and_caching.md) - Reading/writing files, creating directories, and cache invalidation.
 5. [Architecture & Refactoring](05_architecture_and_refactoring.md) - Moving from flat flags to Subcommands using `flag.FlagSet`.
+6. [Advanced Batching & The Interface Trap](06_advanced_batching_and_generics.md) - Why generic ID resolution failed and how we fixed it.
+7. [Tracking the Tick-Tock (Resets & States)](07_time_and_reset_logic.md) - Time handling, resets, and completion status.
+8. [Data Merging & Multi-Caching](08_data_merging_and_multi_caching.md) - Combining static local data with live API state.
 
 ## How to use this book
 If you are reading the codebase and want to understand *why* certain patterns are used or *how* they evolved, refer to the corresponding chapter.
