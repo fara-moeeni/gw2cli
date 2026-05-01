@@ -2,9 +2,12 @@ package ui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"gw2cli/internal/inventory"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 func PrintGlobalHelp() {
@@ -36,16 +39,44 @@ func PrintAchievementHelp() {
 Usage: ./gw2cli achievements [subcommand] [filter]
 
 Subcommands:
-  (default)      Summary of achievement categories and AP.
-  update-cache   Build/refresh the local achievement database.
-  find <term>    Search achievements by name and show progress.
-  masteries      Show mastery points and luck progress.
-  convergences   Convergences achievement progress.
-  raids          Raid achievement progress.
-  fractals       Fractal achievement progress.
-  strikes        Strike mission achievement progress.
-  pvp            PvP rank and achievement progress.
-  wvw            WvW rank and achievement progress.`)
+  (default)           Summary of achievement categories and AP.
+  all [--status=...]  List all achievements (filters: completed, incomplete, any).
+  update-cache        Build/refresh the local achievement database.
+  find <term>         Search achievements by name and show progress.
+  masteries           Show mastery points and luck progress.
+  convergences        Convergences achievement progress.
+  raids               Raid achievement progress.
+  fractals            Fractal achievement progress.
+  strikes             Strike mission achievement progress.
+  pvp                 PvP rank and achievement progress.
+  wvw                 WvW rank and achievement progress.`)
+}
+
+func PrintAchievementTable(achievements []inventory.AchievementProgress) {
+	if len(achievements) == 0 {
+		fmt.Println("No matching achievements found.")
+		return
+	}
+
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Name", "Progress", "Tiers", "AP", "Status"})
+
+	for _, a := range achievements {
+		prog := fmt.Sprintf("%d/%d", a.Current, a.Max)
+		if a.Max == 0 {
+			prog = fmt.Sprintf("%d", a.Current)
+		}
+		t.AppendRow(table.Row{
+			a.Name,
+			prog,
+			a.TierStatus,
+			a.Points,
+			a.StatusSymbol,
+		})
+	}
+	t.SetStyle(table.StyleLight)
+	t.Render()
 }
 
 func PrintAchievementSummary(summaries []inventory.CategorySummary) {

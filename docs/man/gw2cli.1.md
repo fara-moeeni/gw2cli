@@ -77,6 +77,23 @@ Manage the local item database.
 **find** *TERM*
     Search for items in the local database by name without calling the API.
 
+### achievements [subcommand] [FLAGS]
+Track achievement progress and masteries.
+
+**all**
+    List all achievements started or completed on the account.
+    **--status**=[completed|incomplete|any]
+        Filter the list by completion status. Default is "any".
+
+**find** *TERM*
+    Search achievements by name and show progress.
+
+**update-cache**
+    Build or refresh the local achievement database.
+
+**masteries**
+    Show mastery points earned across all regions and total luck.
+
 ## EXAMPLES
 **Search for "Legendary" items across the account:**
     gw2cli search "Legendary"

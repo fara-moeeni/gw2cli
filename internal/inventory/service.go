@@ -717,6 +717,51 @@ func (s *Service) GetDailyDungeons() ([]DailyStatus, error) {
 	return results, nil
 }
 
+func (s *Service) GetAllAchievements(statusFilter string) ([]AchievementProgress, error) {
+	cache, err := s.LoadAchievementCache()
+	if err != nil {
+		return nil, err
+	}
+
+	accountAch, err := s.client.GetAccountAchievements()
+	if err != nil {
+		return nil, err
+	}
+
+	progMap := make(map[int]gw2api.AccountAchievement)
+	for _, a := range accountAch {
+		progMap[a.ID] = a
+	}
+
+	var results []AchievementProgress
+	statusFilter = strings.ToLower(statusFilter)
+
+	for _, a := range cache.Achievements {
+		p := progMap[a.ID]
+		ap := s.mapToProgress(a, p)
+
+		match := false
+		switch statusFilter {
+		case "completed":
+			if ap.Done {
+				match = true
+			}
+		case "incomplete":
+			if !ap.Done {
+				match = true
+			}
+		default:
+			match = true
+		}
+
+		if match {
+			results = append(results, ap)
+		}
+	}
+
+	return results, nil
+}
+
 func (s *Service) GetAchievementSummary() ([]CategorySummary, error) {
 	accountAch, err := s.client.GetAccountAchievements()
 	if err != nil {

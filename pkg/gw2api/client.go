@@ -779,7 +779,9 @@ func (c *Client) GetWizardsVaultSpecial() ([]WizardsVaultObjective, error) {
 
 func (c *Client) GetWorldBossIDs() ([]string, error) {
 	var ids []string
-	resp, err := c.rest.R().Get("/worldbosses")
+	resp, err := c.rest.R().
+		SetResult(&ids).
+		Get("/worldbosses")
 	if err != nil {
 		return nil, err
 	}
@@ -791,7 +793,9 @@ func (c *Client) GetWorldBossIDs() ([]string, error) {
 
 func (c *Client) GetAllAchievementIDs() ([]int, error) {
 	var ids []int
-	resp, err := c.rest.R().Get("/achievements")
+	resp, err := c.rest.R().
+		SetResult(&ids).
+		Get("/achievements")
 	if err != nil {
 		return nil, err
 	}

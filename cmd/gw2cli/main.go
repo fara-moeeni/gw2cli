@@ -13,7 +13,7 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "2.5.0"
+const Version = "2.6.0"
 
 func main() {
         if len(os.Args) < 2 {
@@ -37,6 +37,7 @@ func main() {
         dailyCmd := flag.NewFlagSet("daily", flag.ExitOnError)
         weeklyCmd := flag.NewFlagSet("weekly", flag.ExitOnError)
         achievementsCmd := flag.NewFlagSet("achievements", flag.ExitOnError)
+        achievementsStatus := achievementsCmd.String("status", "any", "Filter by status (any, completed, incomplete)")
 
         // Configure usages
         searchCmd.Usage = ui.PrintSearchHelp
@@ -313,10 +314,17 @@ func main() {
 			                log.Fatalf("Error: %v", err)
 			        }
 			        ui.PrintAchievementSummary(summaries)
-			} else {
+			        } else {
 			        switch achievementsCmd.Arg(0) {
-			        case "update-cache":
-			                if err := invService.EnsureAchievementCache(true); err != nil {
+			        case "all":
+			                _ = invService.CheckAchievementCacheStatus()
+			                fmt.Println("Fetching all achievements...")
+			                results, err := invService.GetAllAchievements(*achievementsStatus)
+			                if err != nil {
+			                        log.Fatalf("Error: %v", err)
+			                }
+			                ui.PrintAchievementTable(results)
+			        case "update-cache":			                if err := invService.EnsureAchievementCache(true); err != nil {
 			                        log.Fatalf("Error: %v", err)
 			                }
 			        case "find":
