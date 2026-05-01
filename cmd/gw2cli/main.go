@@ -13,7 +13,7 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "2.6.0"
+const Version = "2.7.0"
 
 func main() {
         if len(os.Args) < 2 {

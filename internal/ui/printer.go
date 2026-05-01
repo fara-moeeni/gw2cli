@@ -60,7 +60,7 @@ func PrintAchievementTable(achievements []inventory.AchievementProgress) {
 
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Name", "Progress", "Tiers", "AP", "Status"})
+	t.AppendHeader(table.Row{"ID", "Name", "Progress", "Status", "AP"})
 
 	for _, a := range achievements {
 		prog := fmt.Sprintf("%d/%d", a.Current, a.Max)
@@ -68,11 +68,11 @@ func PrintAchievementTable(achievements []inventory.AchievementProgress) {
 			prog = fmt.Sprintf("%d", a.Current)
 		}
 		t.AppendRow(table.Row{
+			a.ID,
 			a.Name,
 			prog,
-			a.TierStatus,
-			a.Points,
 			a.StatusSymbol,
+			a.Points,
 		})
 	}
 	t.SetStyle(table.StyleLight)
@@ -107,18 +107,22 @@ func PrintAchievementProgress(achievements []inventory.AchievementProgress) {
 }
 
 func PrintMasterySummary(summary *inventory.MasterySummary) {
-	fmt.Println("\n--- Mastery & Luck Summary ---")
-	
-	fmt.Print("Mastery Points: ")
-	var parts []string
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Region", "Spent", "Earned"})
+
 	total := 0
+	var summaryParts []string
 	for _, r := range summary.Regions {
-		parts = append(parts, fmt.Sprintf("%s: %d", r.Name, r.Earned))
+		t.AppendRow(table.Row{r.Name, r.Spent, r.Earned})
 		total += r.Earned
+		summaryParts = append(summaryParts, fmt.Sprintf("%s: %d", r.Name, r.Earned))
 	}
-	fmt.Printf("%s  Total: %d\n", strings.Join(parts, "  "), total)
-	
-	fmt.Printf("Total Luck:     %d\n", summary.Luck)
+	t.SetStyle(table.StyleLight)
+	t.Render()
+
+	fmt.Printf("\n%s  Total: %d\n", strings.Join(summaryParts, "  "), total)
+	fmt.Printf("Total Luck: %d\n", summary.Luck)
 }
 
 func PrintDailyHelp() {
