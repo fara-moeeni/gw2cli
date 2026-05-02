@@ -1,5 +1,5 @@
 # Binaries
-gw2cli
+/gw2cli
 *.exe
 *.dll
 *.so

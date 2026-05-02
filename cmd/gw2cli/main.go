@@ -13,45 +13,45 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "2.7.0"
+const Version = "2.8.1"
 
 func main() {
-        if len(os.Args) < 2 {
-                ui.PrintGlobalHelp()
-                return
-        }
+	if len(os.Args) < 2 {
+		ui.PrintGlobalHelp()
+		return
+	}
 
-        // Define Subcommands
-        searchCmd := flag.NewFlagSet("search", flag.ExitOnError)
-        searchType := searchCmd.String("type", "", "Filter by strict Item Type")
-        searchChar := searchCmd.String("character", "", "Search by Character Name or Location")
+	// Define Subcommands
+	searchCmd := flag.NewFlagSet("search", flag.ExitOnError)
+	searchType := searchCmd.String("type", "", "Filter by strict Item Type")
+	searchChar := searchCmd.String("character", "", "Search by Character Name or Location")
 
-        listCmd := flag.NewFlagSet("list", flag.ExitOnError)
-        accountCmd := flag.NewFlagSet("account", flag.ExitOnError)
-        walletCmd := flag.NewFlagSet("wallet", flag.ExitOnError)
-        tpCmd := flag.NewFlagSet("tp", flag.ExitOnError)
-        exchangeCmd := flag.NewFlagSet("exchange", flag.ExitOnError)
-        cacheCmd := flag.NewFlagSet("cache", flag.ExitOnError)
-        legendaryCmd := flag.NewFlagSet("legendary", flag.ExitOnError)
-        recipesCmd := flag.NewFlagSet("recipes", flag.ExitOnError)
-        collectionCmd := flag.NewFlagSet("collection", flag.ExitOnError)
-        dailyCmd := flag.NewFlagSet("daily", flag.ExitOnError)
-        weeklyCmd := flag.NewFlagSet("weekly", flag.ExitOnError)
-        achievementsCmd := flag.NewFlagSet("achievements", flag.ExitOnError)
-        achievementsStatus := achievementsCmd.String("status", "any", "Filter by status (any, completed, incomplete)")
+	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+	accountCmd := flag.NewFlagSet("account", flag.ExitOnError)
+	walletCmd := flag.NewFlagSet("wallet", flag.ExitOnError)
+	tpCmd := flag.NewFlagSet("tp", flag.ExitOnError)
+	exchangeCmd := flag.NewFlagSet("exchange", flag.ExitOnError)
+	cacheCmd := flag.NewFlagSet("cache", flag.ExitOnError)
+	legendaryCmd := flag.NewFlagSet("legendary", flag.ExitOnError)
+	recipesCmd := flag.NewFlagSet("recipes", flag.ExitOnError)
+	collectionCmd := flag.NewFlagSet("collection", flag.ExitOnError)
+	dailyCmd := flag.NewFlagSet("daily", flag.ExitOnError)
+	weeklyCmd := flag.NewFlagSet("weekly", flag.ExitOnError)
+	achievementsCmd := flag.NewFlagSet("achievements", flag.ExitOnError)
+	achievementsStatus := achievementsCmd.String("status", "any", "Filter by status (any, completed, incomplete)")
 
-        // Configure usages
-        searchCmd.Usage = ui.PrintSearchHelp
-        listCmd.Usage = ui.PrintListHelp
-        tpCmd.Usage = ui.PrintTPHelp
-        exchangeCmd.Usage = ui.PrintExchangeHelp
-        cacheCmd.Usage = ui.PrintCacheHelp
-        legendaryCmd.Usage = ui.PrintLegendaryHelp
-        recipesCmd.Usage = ui.PrintRecipesHelp
-        collectionCmd.Usage = ui.PrintCollectionHelp
-        dailyCmd.Usage = ui.PrintDailyHelp
-        weeklyCmd.Usage = ui.PrintWeeklyHelp
-        achievementsCmd.Usage = ui.PrintAchievementHelp
+	// Configure usages
+	searchCmd.Usage = ui.PrintSearchHelp
+	listCmd.Usage = ui.PrintListHelp
+	tpCmd.Usage = ui.PrintTPHelp
+	exchangeCmd.Usage = ui.PrintExchangeHelp
+	cacheCmd.Usage = ui.PrintCacheHelp
+	legendaryCmd.Usage = ui.PrintLegendaryHelp
+	recipesCmd.Usage = ui.PrintRecipesHelp
+	collectionCmd.Usage = ui.PrintCollectionHelp
+	dailyCmd.Usage = ui.PrintDailyHelp
+	weeklyCmd.Usage = ui.PrintWeeklyHelp
+	achievementsCmd.Usage = ui.PrintAchievementHelp
 	verbose := false
 	for _, arg := range os.Args {
 		if arg == "-verbose" {
@@ -67,14 +67,14 @@ func main() {
 
 	switch os.Args[1] {
 	case "account":
-	        accountCmd.Parse(os.Args[2:])
-	        requireAPIKey(apiKey)
-	        fmt.Println("Fetching account summary...")
-	        acc, err := invService.GetAccountSummary()
-	        if err != nil {
-	                log.Fatalf("Error: %v", err)
-	        }
-	        ui.PrintAccountSummary(acc)
+		accountCmd.Parse(os.Args[2:])
+		requireAPIKey(apiKey)
+		fmt.Println("Fetching account summary...")
+		acc, err := invService.GetAccountSummary()
+		if err != nil {
+			log.Fatalf("Error: %v", err)
+		}
+		ui.PrintAccountSummary(acc)
 
 	case "search":
 
@@ -111,21 +111,21 @@ func main() {
 			}
 			ui.PrintTypes(inventory.GetUniqueTypes(allItems))
 		case "characters":
-		        requireAPIKey(apiKey)
-		        fmt.Println("Fetching characters...")
-		        chars, err := invService.GetCharacterList()
-		        if err != nil {
-		                log.Fatalf("Error: %v", err)
-		        }
-		        ui.PrintCharacters(chars)
+			requireAPIKey(apiKey)
+			fmt.Println("Fetching characters...")
+			chars, err := invService.GetCharacterList()
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+			ui.PrintCharacters(chars)
 		case "account":
-		        requireAPIKey(apiKey)
-		        fmt.Println("Fetching account summary...")
-		        acc, err := invService.GetAccountSummary()
-		        if err != nil {
-		                log.Fatalf("Error: %v", err)
-		        }
-		        ui.PrintAccountSummary(acc)
+			requireAPIKey(apiKey)
+			fmt.Println("Fetching account summary...")
+			acc, err := invService.GetAccountSummary()
+			if err != nil {
+				log.Fatalf("Error: %v", err)
+			}
+			ui.PrintAccountSummary(acc)
 		default:
 
 			ui.PrintListHelp()
@@ -235,23 +235,23 @@ func main() {
 			default:
 				ui.PrintRecipesHelp()
 			}
-			}
+		}
 
-			case "collection":
-			collectionCmd.Parse(os.Args[2:])
-			requireAPIKey(apiKey)
-			if collectionCmd.NArg() == 0 {
+	case "collection":
+		collectionCmd.Parse(os.Args[2:])
+		requireAPIKey(apiKey)
+		if collectionCmd.NArg() == 0 {
 			fmt.Println("Fetching collection summary...")
 			summary, err := invService.GetCollectionSummary()
 			if err != nil {
-			        log.Fatalf("Error: %v", err)
+				log.Fatalf("Error: %v", err)
 			}
 			ui.PrintCollectionSummary(summary)
-			} else {
+		} else {
 			sub := collectionCmd.Arg(0)
 			filter := ""
 			if collectionCmd.NArg() > 1 {
-			        filter = strings.Join(collectionCmd.Args()[1:], " ")
+				filter = strings.Join(collectionCmd.Args()[1:], " ")
 			}
 
 			fmt.Printf("Fetching %s...\n", sub)
@@ -260,34 +260,34 @@ func main() {
 
 			switch sub {
 			case "skins":
-			        items, err = invService.GetCollectionSkins(filter)
+				items, err = invService.GetCollectionSkins(filter)
 			case "dyes":
-			        items, err = invService.GetCollectionDyes(filter)
+				items, err = invService.GetCollectionDyes(filter)
 			case "minis":
-			        items, err = invService.GetCollectionMinis(filter)
+				items, err = invService.GetCollectionMinis(filter)
 			case "mounts":
-			        items, err = invService.GetCollectionMounts(filter)
+				items, err = invService.GetCollectionMounts(filter)
 			case "outfits":
-			        items, err = invService.GetCollectionOutfits(filter)
+				items, err = invService.GetCollectionOutfits(filter)
 			case "novelties":
-			        items, err = invService.GetCollectionNovelties(filter)
+				items, err = invService.GetCollectionNovelties(filter)
 			case "finishers":
-			        items, err = invService.GetCollectionFinishers(filter)
+				items, err = invService.GetCollectionFinishers(filter)
 			default:
-			        ui.PrintCollectionHelp()
-			        return
+				ui.PrintCollectionHelp()
+				return
 			}
 
 			if err != nil {
-			        log.Fatalf("Error: %v", err)
+				log.Fatalf("Error: %v", err)
 			}
 			ui.PrintCollectionItems(items, sub)
-			}
+		}
 
-			case "daily":
-			dailyCmd.Parse(os.Args[2:])
-			requireAPIKey(apiKey)
-			if dailyCmd.NArg() == 0 {
+	case "daily":
+		dailyCmd.Parse(os.Args[2:])
+		requireAPIKey(apiKey)
+		if dailyCmd.NArg() == 0 {
 			fmt.Println("Fetching daily status...")
 			bosses, _ := invService.GetDailyBosses()
 			dungeons, _ := invService.GetDailyDungeons()
@@ -298,89 +298,90 @@ func main() {
 
 			wv, _ := invService.GetDailyWizardsVault()
 			ui.PrintWizardsVault(wv, "Daily")
-			} else {
+		} else {
 			switch dailyCmd.Arg(0) {
 			case "fractals":
-			        fractals, _ := invService.GetDailyFractals()
-			        ui.PrintFractalDailies(fractals)
+				fractals, _ := invService.GetDailyFractals()
+				ui.PrintFractalDailies(fractals)
 			case "bosses":
-			        bosses, _ := invService.GetDailyBosses()
-			        ui.PrintDailyStatus(bosses, nil)
+				bosses, _ := invService.GetDailyBosses()
+				ui.PrintDailyStatus(bosses, nil)
 			case "wizardsvault":
-			        wv, _ := invService.GetDailyWizardsVault()
-			        ui.PrintWizardsVault(wv, "Daily")
+				wv, _ := invService.GetDailyWizardsVault()
+				ui.PrintWizardsVault(wv, "Daily")
 			default:
-			        ui.PrintDailyHelp()
+				ui.PrintDailyHelp()
 			}
+		}
+
+	case "weekly":
+		weeklyCmd.Parse(os.Args[2:])
+		requireAPIKey(apiKey)
+		fmt.Println("Fetching weekly status...")
+		raids, _ := invService.GetWeeklyRaids()
+		ui.PrintRaidStatus(raids)
+
+		wv, _ := invService.GetWeeklyWizardsVault()
+		ui.PrintWizardsVault(wv, "Weekly")
+
+	case "achievements":
+		achievementsCmd.Parse(os.Args[2:])
+		requireAPIKey(apiKey)
+		if achievementsCmd.NArg() == 0 {
+			_ = invService.CheckAchievementCacheStatus()
+			fmt.Println("Fetching achievement summary...")
+			summaries, err := invService.GetAchievementSummary()
+			if err != nil {
+				log.Fatalf("Error: %v", err)
 			}
-
-			case "weekly":
-			weeklyCmd.Parse(os.Args[2:])
-			requireAPIKey(apiKey)
-			fmt.Println("Fetching weekly status...")
-			raids, _ := invService.GetWeeklyRaids()
-			ui.PrintRaidStatus(raids)
-
-			wv, _ := invService.GetWeeklyWizardsVault()
-			ui.PrintWizardsVault(wv, "Weekly")
-
-			case "achievements":
-			achievementsCmd.Parse(os.Args[2:])
-			requireAPIKey(apiKey)
-			if achievementsCmd.NArg() == 0 {
-			        _ = invService.CheckAchievementCacheStatus()
-			        fmt.Println("Fetching achievement summary...")
-			        summaries, err := invService.GetAchievementSummary()
-			        if err != nil {
-			                log.Fatalf("Error: %v", err)
-			        }
-			        ui.PrintAchievementSummary(summaries)
-			        } else {
-			        switch achievementsCmd.Arg(0) {
-			        case "all":
-			                _ = invService.CheckAchievementCacheStatus()
-			                fmt.Println("Fetching all achievements...")
-			                results, err := invService.GetAllAchievements(*achievementsStatus)
-			                if err != nil {
-			                        log.Fatalf("Error: %v", err)
-			                }
-			                ui.PrintAchievementTable(results)
-			        case "update-cache":			                if err := invService.EnsureAchievementCache(true); err != nil {
-			                        log.Fatalf("Error: %v", err)
-			                }
-			        case "find":
-			                if achievementsCmd.NArg() < 2 {
-			                        log.Fatal("Usage: achievements find <term>")
-			                }
-			                _ = invService.CheckAchievementCacheStatus()
-			                fmt.Println("Searching achievements...")
-			                results, err := invService.FindAchievements(strings.Join(achievementsCmd.Args()[1:], " "))
-			                if err != nil {
-			                        log.Fatalf("Error: %v", err)
-			                }
-			                ui.PrintAchievementProgress(results)
-			        case "masteries":
-			                fmt.Println("Fetching mastery summary...")
-			                summary, err := invService.GetMasterySummary()
-			                if err != nil {
-			                        log.Fatalf("Error: %v", err)
-			                }
-			                ui.PrintMasterySummary(summary)
-			        case "convergences", "raids", "fractals", "strikes", "pvp", "wvw":
-			                category := achievementsCmd.Arg(0)
-			                _ = invService.CheckAchievementCacheStatus()
-			                fmt.Printf("Fetching %s achievements...\n", category)
-			                results, err := invService.GetCategoryAchievements(category)
-			                if err != nil {
-			                        log.Fatalf("Error: %v", err)
-			                }
-			                ui.PrintAchievementProgress(results)
-			        default:
-			                ui.PrintAchievementHelp()
-			        }
+			ui.PrintAchievementSummary(summaries)
+		} else {
+			switch achievementsCmd.Arg(0) {
+			case "all":
+				_ = invService.CheckAchievementCacheStatus()
+				fmt.Println("Fetching all achievements...")
+				results, err := invService.GetAllAchievements(*achievementsStatus)
+				if err != nil {
+					log.Fatalf("Error: %v", err)
+				}
+				ui.PrintAchievementTable(results)
+			case "update-cache":
+				if err := invService.EnsureAchievementCache(true); err != nil {
+					log.Fatalf("Error: %v", err)
+				}
+			case "find":
+				if achievementsCmd.NArg() < 2 {
+					log.Fatal("Usage: achievements find <term>")
+				}
+				_ = invService.CheckAchievementCacheStatus()
+				fmt.Println("Searching achievements...")
+				results, err := invService.FindAchievements(strings.Join(achievementsCmd.Args()[1:], " "))
+				if err != nil {
+					log.Fatalf("Error: %v", err)
+				}
+				ui.PrintAchievementProgress(results)
+			case "masteries":
+				fmt.Println("Fetching mastery summary...")
+				summary, err := invService.GetMasterySummary()
+				if err != nil {
+					log.Fatalf("Error: %v", err)
+				}
+				ui.PrintMasterySummary(summary)
+			case "convergences", "raids", "fractals", "strikes", "pvp", "wvw":
+				category := achievementsCmd.Arg(0)
+				_ = invService.CheckAchievementCacheStatus()
+				fmt.Printf("Fetching %s achievements...\n", category)
+				results, err := invService.GetCategoryAchievements(category)
+				if err != nil {
+					log.Fatalf("Error: %v", err)
+				}
+				ui.PrintAchievementProgress(results)
+			default:
+				ui.PrintAchievementHelp()
 			}
+		}
 
-			case "exchange":
+	case "exchange":
 
 		exchangeCmd.Parse(os.Args[2:])
 		if exchangeCmd.NArg() == 0 {
@@ -441,6 +442,9 @@ func main() {
 
 func requireAPIKey(key string) {
 	if key == "" {
-		log.Fatal("Error: GW2_API_KEY environment variable not set")
+		fmt.Println("error: GW2_API_KEY is not set")
+		fmt.Println("authenticated subcommands require an API key — see https://account.arena.net/applications")
+		fmt.Println("unauthenticated subcommands: exchange, tp price, daily bosses, daily fractals, cache update, achievements update-cache, cache find")
+		os.Exit(1)
 	}
 }
