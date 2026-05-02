@@ -108,3 +108,14 @@ type MasterySummary struct {
 	Regions []MasteryRegion
 	Luck    int
 }
+
+type AccountSummary struct {
+	Name         string
+	FractalLevel int
+	WvwRank      int
+	DailyAP      int
+	MonthlyAP    int
+	TotalAP      int
+	Created      string
+	TotalPlaytime int // seconds
+}

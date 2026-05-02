@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"gw2cli/internal/inventory"
 
@@ -18,6 +19,7 @@ Usage:
   ./gw2cli <command> [arguments]
 
 Commands:
+  account    Show account summary (Fractal Level, AP, etc)
   search     Search your inventory for items
   list       List characters or item types
   wallet     Show account currencies
@@ -32,6 +34,30 @@ Commands:
   achievements Track achievements and masteries
 
 Use "./gw2cli <command> -help" for more information on a command.`)
+}
+
+func PrintAccountSummary(acc *inventory.AccountSummary) {
+	fmt.Println("\n--- Account Summary ---")
+	fmt.Printf("Account Name:  %s\n", acc.Name)
+	fmt.Printf("Fractal Level: %d\n", acc.FractalLevel)
+	fmt.Printf("WvW Rank:      %d\n", acc.WvwRank)
+	fmt.Printf("Daily AP:      %d\n", acc.DailyAP)
+	fmt.Printf("Monthly AP:    %d\n", acc.MonthlyAP)
+	
+	created, _ := time.Parse(time.RFC3339, acc.Created)
+	fmt.Printf("Created:       %s\n", created.Format("2006-01-02"))
+	
+	// Calculate actual Account Age (time since creation)
+	elapsed := time.Since(created)
+	accYears := int(elapsed.Hours() / 24 / 365)
+	accDays := int(elapsed.Hours()/24) % 365
+	fmt.Printf("Account Age:   %d years, %d days\n", accYears, accDays)
+
+	// Playtime calculation
+	playYears := acc.TotalPlaytime / (365 * 24 * 3600)
+	playDays := (acc.TotalPlaytime % (365 * 24 * 3600)) / (24 * 3600)
+	playHours := (acc.TotalPlaytime % (24 * 3600)) / 3600
+	fmt.Printf("Total Playtime: %d years, %d days, %d hours\n", playYears, playDays, playHours)
 }
 
 func PrintAchievementHelp() {
@@ -361,14 +387,15 @@ Flags:
 
 func PrintListHelp() {
 	fmt.Println(`
-Usage: ./gw2cli list [types|characters]
+Usage: ./gw2cli list [types|characters|account]
 
 Description:
   List high-level account information.
 
 Arguments:
   types         List all unique item types in your inventory.
-  characters    List all characters with details (Level, Profession, etc).`)
+  characters    List all characters with details (Level, Profession, etc).
+  account       Show general account summary (Fractal Level, AP, etc).`)
 }
 
 func PrintTPHelp() {

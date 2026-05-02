@@ -105,6 +105,7 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 
 **List account information:**
 ```bash
+./gw2cli account
 ./gw2cli list characters
 ./gw2cli list types
 ```
