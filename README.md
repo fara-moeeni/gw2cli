@@ -241,21 +241,27 @@ Note: Convergences rotation is not available via the API — check [https://wiki
 # Summary of all achievement categories (AP earned)
 ./gw2cli achievements
 
+# List all achievements started or completed
+./gw2cli achievements all --status=incomplete
+
 # Build/Refresh achievement cache (required for 'find')
 ./gw2cli achievements update-cache
 
-# Search for specific achievements across all categories
+# Search achievements by name (uses cache)
 ./gw2cli achievements find "Conqueror"
 
 # Show mastery points by region and total luck
 ./gw2cli achievements masteries
 
-# Category-specific tracking
+# Track specific progression categories
+./gw2cli achievements convergences
 ./gw2cli achievements raids
 ./gw2cli achievements fractals
+./gw2cli achievements strikes
 ./gw2cli achievements pvp
+./gw2cli achievements wvw
 ```
-Note: Achievements tracking requires the **'progression'** API key permission.
+Note: `achievements update-cache` must be run before `find` is available. Achievement tracking requires the **'progression'** API key permission.
 
 ---
 
