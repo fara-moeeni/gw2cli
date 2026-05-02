@@ -235,3 +235,18 @@ type AccountMastery struct {
 	ID    int `json:"id"`
 	Level int `json:"level"`
 }
+
+type Account struct {
+	ID           string   `json:"id"`
+	Name         string   `json:"name"`
+	Age          int      `json:"age"`
+	World        int      `json:"world"`
+	Guilds       []string `json:"guilds"`
+	Created      string   `json:"created"`
+	Access       []string `json:"access"`
+	Commander    bool     `json:"commander"`
+	FractalLevel int      `json:"fractal_level"`
+	DailyAP      int      `json:"daily_ap"`
+	MonthlyAP    int      `json:"monthly_ap"`
+	WvpRank      int      `json:"wvw_rank"`
+}

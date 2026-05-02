@@ -30,6 +30,24 @@ type CharacterSummary struct {
 	Age        time.Duration
 }
 
+func (s *Service) GetAccountSummary() (*AccountSummary, error) {
+	acc, err := s.client.GetAccount()
+	if err != nil {
+		return nil, err
+	}
+
+	return &AccountSummary{
+		Name:         acc.Name,
+		FractalLevel: acc.FractalLevel,
+		WvwRank:      acc.WvpRank,
+		DailyAP:      acc.DailyAP,
+		MonthlyAP:    acc.MonthlyAP,
+		TotalAP:      acc.DailyAP + acc.MonthlyAP,
+		Created:      acc.Created,
+		TotalPlaytime: acc.Age,
+	}, nil
+}
+
 func (s *Service) GetCharacterList() ([]CharacterSummary, error) {
 	chars, err := s.client.GetCharacters()
 	if err != nil {

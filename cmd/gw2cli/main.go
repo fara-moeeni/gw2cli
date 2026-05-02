@@ -27,6 +27,7 @@ func main() {
         searchChar := searchCmd.String("character", "", "Search by Character Name or Location")
 
         listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+        accountCmd := flag.NewFlagSet("account", flag.ExitOnError)
         walletCmd := flag.NewFlagSet("wallet", flag.ExitOnError)
         tpCmd := flag.NewFlagSet("tp", flag.ExitOnError)
         exchangeCmd := flag.NewFlagSet("exchange", flag.ExitOnError)
@@ -65,7 +66,18 @@ func main() {
 	invService.Verbose = verbose
 
 	switch os.Args[1] {
+	case "account":
+	        accountCmd.Parse(os.Args[2:])
+	        requireAPIKey(apiKey)
+	        fmt.Println("Fetching account summary...")
+	        acc, err := invService.GetAccountSummary()
+	        if err != nil {
+	                log.Fatalf("Error: %v", err)
+	        }
+	        ui.PrintAccountSummary(acc)
+
 	case "search":
+
 		searchCmd.Parse(os.Args[2:])
 		requireAPIKey(apiKey)
 		_ = invService.CheckCacheStatus()
@@ -99,14 +111,23 @@ func main() {
 			}
 			ui.PrintTypes(inventory.GetUniqueTypes(allItems))
 		case "characters":
-			requireAPIKey(apiKey)
-			fmt.Println("Fetching characters...")
-			chars, err := invService.GetCharacterList()
-			if err != nil {
-				log.Fatalf("Error: %v", err)
-			}
-			ui.PrintCharacters(chars)
+		        requireAPIKey(apiKey)
+		        fmt.Println("Fetching characters...")
+		        chars, err := invService.GetCharacterList()
+		        if err != nil {
+		                log.Fatalf("Error: %v", err)
+		        }
+		        ui.PrintCharacters(chars)
+		case "account":
+		        requireAPIKey(apiKey)
+		        fmt.Println("Fetching account summary...")
+		        acc, err := invService.GetAccountSummary()
+		        if err != nil {
+		                log.Fatalf("Error: %v", err)
+		        }
+		        ui.PrintAccountSummary(acc)
 		default:
+
 			ui.PrintListHelp()
 		}
 

@@ -34,6 +34,22 @@ func NewClient(apiKey string) *Client {
 	}
 }
 
+func (c *Client) GetAccount() (*Account, error) {
+	var account Account
+	resp, err := c.rest.R().
+		SetHeader("Authorization", "Bearer "+c.apiKey).
+		SetResult(&account).
+		Get("/account")
+
+	if err != nil {
+		return nil, err
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("API error: %s", resp.Status())
+	}
+	return &account, nil
+}
+
 func (c *Client) GetSharedInventory() (AccountInventory, error) {
 	var inventory AccountInventory
 	resp, err := c.rest.R().
