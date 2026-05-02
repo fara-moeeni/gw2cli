@@ -62,6 +62,47 @@ git push origin 2.x.x
 
 ---
 
+## Unauthenticated Testing (No API Key Required)
+
+The following subcommands hit public GW2 API endpoints and work without a `GW2_API_KEY`:
+
+**Check live Gem/Coin exchange rates:**
+```bash
+./gw2cli exchange
+./gw2cli exchange gems 400
+./gw2cli exchange coins 1000000
+```
+
+**Check live Trading Post prices:**
+```bash
+./gw2cli tp price "Glob of Ectoplasm"
+./gw2cli tp price "Mystic Coin"
+```
+
+**Check today's world boss schedule:**
+```bash
+./gw2cli daily bosses
+```
+
+**Check today's fractal dailies:**
+```bash
+./gw2cli daily fractals
+```
+
+**Build the local item and achievement caches:**
+```bash
+./gw2cli cache update
+./gw2cli achievements update-cache
+```
+
+**Search the local item cache by name (no API call):**
+```bash
+./gw2cli cache find "Ectoplasm"
+./gw2cli cache find "Twilight"
+```
+
+All other subcommands require a valid API key. See [Get an API Key](#usage) below.
+
 ## Usage
 
 ### 1. Get an API Key

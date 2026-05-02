@@ -13,7 +13,7 @@ import (
 	"gw2cli/pkg/gw2api"
 )
 
-const Version = "2.6.0"
+const Version = "2.8.1"
 
 func main() {
         if len(os.Args) < 2 {
@@ -441,6 +441,10 @@ func main() {
 
 func requireAPIKey(key string) {
 	if key == "" {
-		log.Fatal("Error: GW2_API_KEY environment variable not set")
+		fmt.Println("error: GW2_API_KEY is not set")
+		fmt.Println("authenticated subcommands require an API key — see https://account.arena.net/applications")
+		fmt.Println("unauthenticated subcommands: exchange, tp price, daily bosses, daily fractals, cache update, achievements update-cache, cache find")
+		os.Exit(1)
 	}
 }
+

@@ -13,7 +13,7 @@ import (
 
 func PrintGlobalHelp() {
 	fmt.Println(`
-GW2CLI - Guild Wars 2 Inventory Tool (v2.1.0)
+GW2CLI - Guild Wars 2 Inventory Tool (v2.8.1)
 
 Usage:
   ./gw2cli <command> [arguments]
