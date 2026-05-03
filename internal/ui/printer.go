@@ -11,9 +11,9 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
-func PrintGlobalHelp() {
-	fmt.Println(`
-GW2CLI - Guild Wars 2 Inventory Tool (v2.8.1)
+func PrintGlobalHelp(version string) {
+	fmt.Printf(`
+GW2CLI - Guild Wars 2 Inventory Tool (v%s)
 
 Usage:
   ./gw2cli <command> [arguments]
@@ -33,7 +33,24 @@ Commands:
   weekly     Track weekly resets and raids
   achievements Track achievements and masteries
 
-Use "./gw2cli <command> -help" for more information on a command.`)
+Use "./gw2cli <command> -help" for more information on a command.
+`, version)
+}
+
+func PrintAccountHelp() {
+	fmt.Println(`
+Usage: ./gw2cli account
+
+Description:
+  Show account summary, including fractal level, WvW rank, AP, account age, and playtime.`)
+}
+
+func PrintWalletHelp() {
+	fmt.Println(`
+Usage: ./gw2cli wallet
+
+Description:
+  Show account currencies and balances.`)
 }
 
 func PrintAccountSummary(acc *inventory.AccountSummary) {
@@ -43,17 +60,19 @@ func PrintAccountSummary(acc *inventory.AccountSummary) {
 	fmt.Printf("WvW Rank:      %d\n", acc.WvwRank)
 	fmt.Printf("Daily AP:      %d\n", acc.DailyAP)
 	fmt.Printf("Monthly AP:    %d\n", acc.MonthlyAP)
-	
-	created, _ := time.Parse(time.RFC3339, acc.Created)
-	fmt.Printf("Created:       %s\n", created.Format("2006-01-02"))
-	
-	// Calculate actual Account Age (time since creation)
-	elapsed := time.Since(created)
-	accYears := int(elapsed.Hours() / 24 / 365)
-	accDays := int(elapsed.Hours()/24) % 365
-	fmt.Printf("Account Age:   %d years, %d days\n", accYears, accDays)
 
-	// Playtime calculation
+	created, err := time.Parse(time.RFC3339, acc.Created)
+	if err == nil {
+		fmt.Printf("Created:       %s\n", created.Format("2006-01-02"))
+
+		elapsed := time.Since(created)
+		accYears := int(elapsed.Hours() / 24 / 365)
+		accDays := int(elapsed.Hours()/24) % 365
+		fmt.Printf("Account Age:   %d years, %d days\n", accYears, accDays)
+	} else {
+		fmt.Printf("Created:       %s\n", acc.Created)
+	}
+
 	playYears := acc.TotalPlaytime / (365 * 24 * 3600)
 	playDays := (acc.TotalPlaytime % (365 * 24 * 3600)) / (24 * 3600)
 	playHours := (acc.TotalPlaytime % (24 * 3600)) / 3600
@@ -243,7 +262,7 @@ func PrintRaidStatus(wings []inventory.RaidWingStatus) {
 			fmt.Printf(" %s %s\n", status, event.Name)
 		}
 	}
-	
+
 	fmt.Println("\nOTHERS:")
 	fmt.Println(" Convergences: rotation not available via API — check https://wiki.guildwars2.com/wiki/Convergences")
 }
@@ -529,7 +548,7 @@ func PrintTPTransactions(buys, sells []inventory.CommerceTransaction, current bo
 	}
 
 	fmt.Printf("\n--- Trading Post: %s ---\n", title)
-	
+
 	fmt.Println("\nBUYS:")
 	if len(buys) == 0 {
 		fmt.Println(" None")
