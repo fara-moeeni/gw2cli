@@ -33,8 +33,13 @@ func (s *Service) EnsureCache(force bool) error {
 	}
 
 	var currentCache ItemCache
-	if data, err := os.ReadFile(cachePath); err == nil {
-		_ = json.Unmarshal(data, &currentCache)
+	if !force {
+		data, err := os.ReadFile(cachePath)
+		if err == nil {
+			if err := json.Unmarshal(data, &currentCache); err != nil {
+				return fmt.Errorf("failed to read item cache: %w", err)
+			}
+		}
 	}
 
 	if len(currentCache.Items) >= len(allIDs) && !force {
@@ -59,12 +64,13 @@ func (s *Service) EnsureCache(force bool) error {
 		}
 	}
 
-	if len(missingIDs) == 0 && !force {
+	if len(missingIDs) == 0 {
 		return nil
 	}
 
 	fmt.Println("fetching item list...")
 	fmt.Println("resolving names...")
+	var writeErr error
 	_, err = s.client.GetItemsWithProgress(missingIDs, func(current, total int, newItems []gw2api.Item) {
 		for _, item := range newItems {
 			currentCache.Items = append(currentCache.Items, CacheEntry{
@@ -74,9 +80,8 @@ func (s *Service) EnsureCache(force bool) error {
 			})
 		}
 
-		// Save to disk immediately
-		if data, errMarshal := json.Marshal(currentCache); errMarshal == nil {
-			_ = os.WriteFile(cachePath, data, 0644)
+		if writeErr == nil {
+			writeErr = writeJSONFile(cachePath, currentCache)
 		}
 
 		pct := float64(len(currentCache.Items)) / float64(len(allIDs)) * 100
@@ -89,11 +94,14 @@ func (s *Service) EnsureCache(force bool) error {
 		fmt.Printf("\rProgress: [%s] %.1f%% (%d/%d) ", bar, pct, len(currentCache.Items), len(allIDs))
 	})
 
-	fmt.Printf("\ndone. cached %d items to %s\n", len(currentCache.Items), cachePath)
 	if err != nil {
 		return fmt.Errorf("caching interrupted: %w", err)
 	}
+	if writeErr != nil {
+		return fmt.Errorf("failed to save item cache: %w", writeErr)
+	}
 
+	fmt.Printf("\ndone. cached %d items to %s\n", len(currentCache.Items), cachePath)
 	return nil
 }
 
@@ -175,4 +183,33 @@ func GetCachePath() (string, error) {
 		return "", err
 	}
 	return filepath.Join(home, ".config", "gw2cli", "items.json"), nil
+}
+
+func writeJSONFile(path string, value any) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return fmt.Errorf("failed to create cache directory: %w", err)
+	}
+
+	tmp, err := os.CreateTemp(filepath.Dir(path), filepath.Base(path)+".*.tmp")
+	if err != nil {
+		return err
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName)
+
+	encoder := json.NewEncoder(tmp)
+	if err := encoder.Encode(value); err != nil {
+		if closeErr := tmp.Close(); closeErr != nil {
+			return fmt.Errorf("%w; failed to close temporary cache file: %v", err, closeErr)
+		}
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		return err
+	}
+
+	if err := os.Rename(tmpName, path); err != nil {
+		return err
+	}
+	return nil
 }

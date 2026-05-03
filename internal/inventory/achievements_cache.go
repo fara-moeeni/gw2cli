@@ -12,10 +12,10 @@ import (
 )
 
 type AchievementCacheEntry struct {
-	ID          int                       `json:"id"`
-	Name        string                    `json:"name"`
-	Description string                    `json:"description"`
-	Tiers       []gw2api.AchievementTier  `json:"tiers"`
+	ID          int                      `json:"id"`
+	Name        string                   `json:"name"`
+	Description string                   `json:"description"`
+	Tiers       []gw2api.AchievementTier `json:"tiers"`
 }
 
 type AchievementCache struct {
@@ -34,8 +34,13 @@ func (s *Service) EnsureAchievementCache(force bool) error {
 	}
 
 	var currentCache AchievementCache
-	if data, err := os.ReadFile(cachePath); err == nil {
-		_ = json.Unmarshal(data, &currentCache)
+	if !force {
+		data, err := os.ReadFile(cachePath)
+		if err == nil {
+			if err := json.Unmarshal(data, &currentCache); err != nil {
+				return fmt.Errorf("failed to read achievement cache: %w", err)
+			}
+		}
 	}
 
 	if len(currentCache.Achievements) >= len(allIDs) && !force {
@@ -58,12 +63,13 @@ func (s *Service) EnsureAchievementCache(force bool) error {
 		}
 	}
 
-	if len(missingIDs) == 0 && !force {
+	if len(missingIDs) == 0 {
 		return nil
 	}
 
 	fmt.Println("fetching achievement list...")
 	fmt.Println("resolving names...")
+	var writeErr error
 	_, err = s.client.GetAchievementsWithProgress(missingIDs, func(current, total int, newAch []gw2api.Achievement) {
 		for _, a := range newAch {
 			currentCache.Achievements = append(currentCache.Achievements, AchievementCacheEntry{
@@ -74,8 +80,8 @@ func (s *Service) EnsureAchievementCache(force bool) error {
 			})
 		}
 
-		if data, errMarshal := json.Marshal(currentCache); errMarshal == nil {
-			_ = os.WriteFile(cachePath, data, 0644)
+		if writeErr == nil {
+			writeErr = writeJSONFile(cachePath, currentCache)
 		}
 
 		pct := float64(len(currentCache.Achievements)) / float64(len(allIDs)) * 100
@@ -88,8 +94,15 @@ func (s *Service) EnsureAchievementCache(force bool) error {
 		fmt.Printf("\rProgress: [%s] %.1f%% (%d/%d) ", bar, pct, len(currentCache.Achievements), len(allIDs))
 	})
 
+	if err != nil {
+		return fmt.Errorf("achievement caching interrupted: %w", err)
+	}
+	if writeErr != nil {
+		return fmt.Errorf("failed to save achievement cache: %w", writeErr)
+	}
+
 	fmt.Printf("\ndone. cached %d achievements to %s\n", len(currentCache.Achievements), cachePath)
-	return err
+	return nil
 }
 
 func (s *Service) LoadAchievementCache() (*AchievementCache, error) {
