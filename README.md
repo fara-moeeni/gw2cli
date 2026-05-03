@@ -4,12 +4,26 @@ A fast and modular CLI tool written in Go to search your entire Guild Wars 2 acc
 
 ## Features
 
-- 🔍 **Full Account Search**: Scans Bank, Shared Slots, Material Storage, and all Characters (Bags + Equipment).
-- 👤 **Character Management**: List all characters with level, profession, and playtime details.
-- 💰 **Wallet View**: Quickly view all account currencies and their values.
-- 🚀 **Fast**: Uses concurrent requests to fetch account data and parallel processing for item resolution.
-- 📦 **Smart Batching**: Automatically handles API limits when resolving thousands of item IDs.
-- 📝 **Flexible Filtering**: Search by Name, Item Type, ID, or Location.
+- **Full Account Search**: Scans Bank, Shared Slots, Material Storage, and all Characters (Bags + Equipment).
+- **Character Management**: List all characters with level, profession, and playtime details.
+- **Wallet View**: Quickly view all account currencies and their values.
+- **Fast**: Uses concurrent requests to fetch account data and parallel processing for item resolution.
+- **Smart Batching**: Automatically handles API limits when resolving thousands of item IDs.
+- **Flexible Filtering**: Search by Name, Item Type, ID, or Location.
+
+## Why a CLI?
+
+Web tools like [GW2Efficiency](https://gw2efficiency.com/) are excellent for visual overviews, but they are someone else's interface on your data. GW2CLI gives you raw, scriptable, pipeable text output, which opens up workflows that no web UI can match:
+
+- **Pipe into grep, awk, jq**: filter and transform your account data however you want, no UI constraints
+- **Feed into AI tools**: dump your inventory, achievement progress, or trading post history into [NotebookLM], ChatGPT, or Claude to get personalised farming plans, build advice, or goal tracking
+- **Automate and schedule**: run it in a cron job, diff yesterday's wallet against today's, alert yourself when a trading post order fills
+- **Offline and local**: your data stays on your machine, no third-party account required beyond your own GW2 API key
+- **Composable**: combine GW2CLI output with other tools: spreadsheets, databases, dashboards you control
+- **Build on top of it**: wrap GW2CLI in a small API server, back a Discord bot with it, or build a lightweight mobile app that queries it, your own personal GW2 assistant, hosted wherever you want, accessible from anywhere
+
+
+If you want to click around a pretty UI, GW2Efficiency is great. If you want to own your data and build on top of it, GW2CLI is for you.
 
 ## Installation
 
