@@ -10,11 +10,11 @@ Instead of one global `flag.Parse()`, Go allows you to create independent sets o
 
 ```go
 // Define a flagset
-searchCmd := flag.NewFlagSet("search", flag.ExitOnError)
+searchCmd := flag.NewFlagSet("search", flag.ContinueOnError)
 searchType := searchCmd.String("type", "", "Filter by strict Item Type")
 
 // Define another flagset
-walletCmd := flag.NewFlagSet("wallet", flag.ExitOnError)
+walletCmd := flag.NewFlagSet("wallet", flag.ContinueOnError)
 ```
 
 ### 2. Command Routing
@@ -23,10 +23,14 @@ We learned to read `os.Args` directly to figure out which subcommand the user wa
 ```go
 switch os.Args[1] {
 case "search":
-    searchCmd.Parse(os.Args[2:]) // Parse only the arguments after 'search'
+    if err := searchCmd.Parse(os.Args[2:]); err != nil {
+        return err
+    }
     // Execute search logic
 case "wallet":
-    walletCmd.Parse(os.Args[2:])
+    if err := walletCmd.Parse(os.Args[2:]); err != nil {
+        return err
+    }
     // Execute wallet logic
 }
 ```

@@ -26,6 +26,9 @@ The tool uses a local item cache to provide fast offline searching and to resolv
 
 .SH COMMANDS
 
+.SS account
+Show account summary, including fractal level, WvW rank, AP, account age, and playtime.
+
 .SS search [TERM] [FLAGS]
 Search your entire account inventory (Bank, Shared Inventory, and all Characters) for items.
 
@@ -37,7 +40,7 @@ Search your entire account inventory (Bank, Shared Inventory, and all Characters
 \fB-character\fP \fINAME\fP
     Filter search results to a specific character.
 
-.SS list [types|characters]
+.SS list [types|characters|account]
 List high-level account information.
 
 .PP
@@ -47,6 +50,10 @@ List high-level account information.
 .PP
 \fBcharacters\fP
     List all characters on the account with their level, profession, and total playtime.
+
+.PP
+\fBaccount\fP
+    Show the account summary.
 
 .SS wallet
 Show the account's wallet (Gold, Gems, Karma, etc.).
@@ -92,8 +99,54 @@ Manage the local item database.
 \fBfind\fP \fITERM\fP
     Search for items in the local database by name without calling the API.
 
+.SS achievements [subcommand] [FLAGS]
+Track achievement progress and masteries.
+
+.PP
+\fBall\fP
+    List all achievements started or completed on the account.
+
+.PP
+\fBfind\fP \fITERM\fP
+    Search achievements by name and show progress.
+
+.PP
+\fBupdate-cache\fP
+    Build or refresh the local achievement database.
+
+.PP
+\fBmasteries\fP
+    Show mastery points earned across all regions and total luck.
+
+.SS daily [subcommand]
+Track daily reset status and objectives.
+
+.PP
+\fBbosses\fP
+    List world bosses. With an API key, completed bosses are marked.
+
+.PP
+\fBfractals\fP
+    Show current daily fractal achievements.
+
+.PP
+\fBwizardsvault\fP
+    Show daily Wizard's Vault objectives. Requires an API key.
+
+.SS weekly
+Show weekly raid and Wizard's Vault status. Requires an API key.
+
+.SS recipes [subcommand] [ARGUMENTS]
+List and search unlocked account recipes. Requires an API key and local item cache.
+
+.SS collection [subcommand] [FILTER]
+Show account collection summaries and unlocked skins, dyes, minis, mounts, outfits, novelties, or finishers. Requires an API key.
+
 .SS legendary [TERM]
-Display all items currently in your Legendary Armory.
+Display all items currently in your Legendary Armory. Requires an API key and local item cache.
+
+.SH UNAUTHENTICATED COMMANDS
+The following commands work without \fBGW2_API_KEY\fP: \fBexchange\fP, \fBtp price\fP, \fBdaily bosses\fP, \fBdaily fractals\fP, \fBcache update\fP, \fBcache find\fP, and \fBachievements update-cache\fP.
 
 .SH EXAMPLES
 \fBSearch for "Legendary" items across the account:\fP

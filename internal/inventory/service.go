@@ -11,11 +11,65 @@ import (
 )
 
 type Service struct {
-	client     *gw2api.Client
-	Verbose    bool
+	client  APIClient
+	Verbose bool
 }
 
-func NewService(client *gw2api.Client) *Service {
+type APIClient interface {
+	GetAccount() (*gw2api.Account, error)
+	GetSharedInventory() (gw2api.AccountInventory, error)
+	GetBank() (gw2api.AccountInventory, error)
+	GetMaterials() ([]gw2api.MaterialStorageEntry, error)
+	GetCharacters() ([]gw2api.Character, error)
+	GetItems([]int) ([]gw2api.Item, error)
+	GetItemsWithProgress([]int, func(int, int, []gw2api.Item)) ([]gw2api.Item, error)
+	GetWallet() ([]gw2api.WalletCurrency, error)
+	GetCurrencies([]int) ([]gw2api.Currency, error)
+	GetAllItemIDs() ([]int, error)
+	GetCommerceDelivery() (*gw2api.CommerceDelivery, error)
+	GetCommercePrices([]int) ([]gw2api.CommercePrice, error)
+	GetCommerceTransactions(bool, bool) ([]gw2api.CommerceTransaction, error)
+	GetCoinsToGems(int) (*gw2api.CommerceExchange, error)
+	GetGemsToCoins(int) (*gw2api.CommerceExchange, error)
+	GetLegendaryArmory() ([]gw2api.LegendaryArmoryItem, error)
+	GetAccountRecipes() ([]int, error)
+	GetRecipes([]int) ([]gw2api.Recipe, error)
+	SearchRecipesByItem(int, bool) ([]int, error)
+	GetAccountSkins() ([]int, error)
+	GetAccountDyes() ([]int, error)
+	GetAccountMinis() ([]int, error)
+	GetAccountMountSkins() ([]int, error)
+	GetAccountMountTypes() ([]string, error)
+	GetAccountOutfits() ([]int, error)
+	GetAccountNovelties() ([]int, error)
+	GetAccountFinishers() ([]int, error)
+	ResolveSkins([]int) ([]gw2api.Skin, error)
+	ResolveColors([]int) ([]gw2api.NamedEntity, error)
+	ResolveMinis([]int) ([]gw2api.NamedEntity, error)
+	ResolveMountSkins([]int) ([]gw2api.NamedEntity, error)
+	ResolveOutfits([]int) ([]gw2api.NamedEntity, error)
+	ResolveNovelties([]int) ([]gw2api.NamedEntity, error)
+	ResolveFinishers([]int) ([]gw2api.NamedEntity, error)
+	GetDailyAchievements() (*gw2api.DailyAchievements, error)
+	GetAchievements([]int) ([]gw2api.Achievement, error)
+	GetAccountWorldBosses() ([]string, error)
+	GetWorldBossIDs() ([]string, error)
+	GetAccountDungeons() ([]string, error)
+	GetDungeons() ([]gw2api.Dungeon, error)
+	GetAccountRaids() ([]string, error)
+	GetRaids() ([]gw2api.Raid, error)
+	GetWizardsVaultDaily() ([]gw2api.WizardsVaultObjective, error)
+	GetWizardsVaultWeekly() ([]gw2api.WizardsVaultObjective, error)
+	GetAllAchievementIDs() ([]int, error)
+	GetAchievementsWithProgress([]int, func(int, int, []gw2api.Achievement)) ([]gw2api.Achievement, error)
+	GetAccountAchievements() ([]gw2api.AccountAchievement, error)
+	GetMasteryPointSummary() (*gw2api.MasteryPointSummary, error)
+	GetLuck() (int, error)
+	GetAchievementCategories() ([]gw2api.AchievementCategory, error)
+	GetAchievementGroups() ([]gw2api.AchievementGroup, error)
+}
+
+func NewService(client APIClient) *Service {
 	return &Service{client: client}
 }
 
@@ -37,13 +91,13 @@ func (s *Service) GetAccountSummary() (*AccountSummary, error) {
 	}
 
 	return &AccountSummary{
-		Name:         acc.Name,
-		FractalLevel: acc.FractalLevel,
-		WvwRank:      acc.WvpRank,
-		DailyAP:      acc.DailyAP,
-		MonthlyAP:    acc.MonthlyAP,
-		TotalAP:      acc.DailyAP + acc.MonthlyAP,
-		Created:      acc.Created,
+		Name:          acc.Name,
+		FractalLevel:  acc.FractalLevel,
+		WvwRank:       acc.WvpRank,
+		DailyAP:       acc.DailyAP,
+		MonthlyAP:     acc.MonthlyAP,
+		TotalAP:       acc.DailyAP + acc.MonthlyAP,
+		Created:       acc.Created,
 		TotalPlaytime: acc.Age,
 	}, nil
 }
@@ -56,7 +110,10 @@ func (s *Service) GetCharacterList() ([]CharacterSummary, error) {
 
 	var summary []CharacterSummary
 	for _, c := range chars {
-		createdTime, _ := time.Parse(time.RFC3339, c.Created)
+		createdTime, err := time.Parse(time.RFC3339, c.Created)
+		if err != nil {
+			createdTime = time.Time{}
+		}
 		summary = append(summary, CharacterSummary{
 			Name:       c.Name,
 			Race:       c.Race,
@@ -94,6 +151,22 @@ func (s *Service) FetchAll() ([]ItemDetail, error) {
 	// Return error only if all fetches failed, otherwise partial results are acceptable
 	if errShared != nil && errBank != nil && errMaterials != nil && errChars != nil {
 		return nil, fmt.Errorf("failed to fetch any data: %v, %v, %v, %v", errShared, errBank, errMaterials, errChars)
+	}
+	var partialFailures []string
+	if errShared != nil {
+		partialFailures = append(partialFailures, fmt.Sprintf("shared inventory: %v", errShared))
+	}
+	if errBank != nil {
+		partialFailures = append(partialFailures, fmt.Sprintf("bank: %v", errBank))
+	}
+	if errMaterials != nil {
+		partialFailures = append(partialFailures, fmt.Sprintf("materials: %v", errMaterials))
+	}
+	if errChars != nil {
+		partialFailures = append(partialFailures, fmt.Sprintf("characters: %v", errChars))
+	}
+	if len(partialFailures) > 0 {
+		fmt.Printf("warning: partial account data: %s\n", strings.Join(partialFailures, "; "))
 	}
 
 	// Map ItemID -> List of Locations
@@ -397,8 +470,33 @@ func (s *Service) GetCollectionSummary() (*CollectionSummary, error) {
 	go func() { defer wg.Done(); finishers, errFinishers = s.client.GetAccountFinishers() }()
 	wg.Wait()
 
-	if errSkins != nil || errDyes != nil || errMinis != nil || errMountSkins != nil || errMountTypes != nil || errOutfits != nil || errNovelties != nil || errFinishers != nil {
-		return nil, fmt.Errorf("failed to fetch collection data")
+	var failures []string
+	if errSkins != nil {
+		failures = append(failures, fmt.Sprintf("skins: %v", errSkins))
+	}
+	if errDyes != nil {
+		failures = append(failures, fmt.Sprintf("dyes: %v", errDyes))
+	}
+	if errMinis != nil {
+		failures = append(failures, fmt.Sprintf("minis: %v", errMinis))
+	}
+	if errMountSkins != nil {
+		failures = append(failures, fmt.Sprintf("mount skins: %v", errMountSkins))
+	}
+	if errMountTypes != nil {
+		failures = append(failures, fmt.Sprintf("mount types: %v", errMountTypes))
+	}
+	if errOutfits != nil {
+		failures = append(failures, fmt.Sprintf("outfits: %v", errOutfits))
+	}
+	if errNovelties != nil {
+		failures = append(failures, fmt.Sprintf("novelties: %v", errNovelties))
+	}
+	if errFinishers != nil {
+		failures = append(failures, fmt.Sprintf("finishers: %v", errFinishers))
+	}
+	if len(failures) > 0 {
+		return nil, fmt.Errorf("failed to fetch collection data: %s", strings.Join(failures, "; "))
 	}
 
 	return &CollectionSummary{
@@ -478,7 +576,9 @@ func (s *Service) GetCollectionMounts(term string) ([]CollectionItem, error) {
 		items = append(items, CollectionItem{Name: r.Name, Type: "Skin"})
 	}
 	for _, t := range types {
-		// Capitalize mount type
+		if t == "" {
+			continue
+		}
 		name := strings.ToUpper(t[:1]) + t[1:]
 		items = append(items, CollectionItem{Name: name, Type: "Type"})
 	}
@@ -578,6 +678,22 @@ func (s *Service) GetDailyBosses() ([]DailyStatus, error) {
 	return results, nil
 }
 
+func (s *Service) GetWorldBossList() ([]DailyStatus, error) {
+	ids, err := s.client.GetWorldBossIDs()
+	if err != nil {
+		return nil, err
+	}
+
+	var results []DailyStatus
+	for _, id := range ids {
+		results = append(results, DailyStatus{Name: id})
+	}
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Name < results[j].Name
+	})
+	return results, nil
+}
+
 func (s *Service) GetDailyFractals() ([]FractalDaily, error) {
 	dailies, err := s.client.GetDailyAchievements()
 	if err != nil {
@@ -603,7 +719,7 @@ func (s *Service) GetDailyFractals() ([]FractalDaily, error) {
 	// /v2/account/achievements is needed. For now, let's assume [ ]
 	// as per requirement "Handle accounts with no clears gracefully".
 	// To actually show [✓], we'd need account achievement progress.
-	
+
 	var results []FractalDaily
 	for _, f := range dailies.Fractals {
 		ach := achMap[f.ID]

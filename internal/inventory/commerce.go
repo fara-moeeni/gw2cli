@@ -88,8 +88,13 @@ func (s *Service) GetPrices(term string) ([]CommercePrice, error) {
 		ids = []int{termID}
 	} else {
 		// Try local cache first (no auto-build)
-		_ = s.EnsureCache(false)
-		cachedIDs, _ := s.SearchCache(term)
+		if err := s.EnsureCache(false); err != nil && s.Verbose {
+			fmt.Printf("warning: local item database is unavailable: %v\n", err)
+		}
+		cachedIDs, err := s.SearchCache(term)
+		if err != nil && s.Verbose {
+			fmt.Printf("warning: local item database search failed: %v\n", err)
+		}
 		if len(cachedIDs) > 0 {
 			ids = cachedIDs
 		} else {
@@ -107,7 +112,7 @@ func (s *Service) GetPrices(term string) ([]CommercePrice, error) {
 	}
 
 	if len(ids) == 0 {
-		return nil, fmt.Errorf("item '%s' not found. Use -build-cache to search all game items", term)
+		return nil, fmt.Errorf("item %q not found; run 'cache update' to search all game items by name", term)
 	}
 	// Limit to top results for safety if name matched many items
 	if len(ids) > 10 {
