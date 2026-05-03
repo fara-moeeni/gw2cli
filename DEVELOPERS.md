@@ -8,6 +8,8 @@ This document outlines development standards, branching, and the release process
 - **Concise comments**: Avoid "This function does X" style comments. Only explain non-obvious "why" logic.
 - **Commit Style**: Use terse, imperative-style commit messages (e.g., `feat: add cache`, `fix: handle api timeout`).
 - **Idiomatic Go**: Follow standard Go formatting (`go fmt`) and modular patterns.
+- **Errors**: Return and handle errors explicitly. Do not ignore API, parsing, or file-system errors unless there is a documented fallback.
+- **Tests**: Add focused automated tests for new behavior and bug fixes.
 
 ### Architecture
 - `cmd/gw2cli/`: CLI entry point and flag parsing.
@@ -31,7 +33,7 @@ make build
 make test
 
 # Run directly
-go run cmd/gw2cli/main.go [flags]
+go run ./cmd/gw2cli [flags]
 ```
 
 ## Release Process
@@ -54,6 +56,6 @@ Official releases are triggered by Git tags:
 ```bash
 git checkout main
 git pull origin main
-git tag 1.x.x
-git push origin 1.x.x
+git tag v1.x.x
+git push origin v1.x.x
 ```
