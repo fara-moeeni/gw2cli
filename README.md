@@ -56,8 +56,8 @@ The GitHub Actions pipeline automatically builds and cross-compiles binaries whe
 ```bash
 git checkout main
 git pull origin main
-git tag 2.x.x
-git push origin 2.x.x
+git tag v2.x.x
+git push origin v2.x.x
 ```
 
 ---
@@ -83,6 +83,7 @@ The following subcommands hit public GW2 API endpoints and work without a `GW2_A
 ```bash
 ./gw2cli daily bosses
 ```
+Without an API key this lists the public boss rotation. With an API key it also marks account completions.
 
 **Check today's fractal dailies:**
 ```bash
@@ -225,7 +226,8 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 # Show only today's fractal dailies
 ./gw2cli daily fractals
 
-# Show only world boss daily reset status
+# Show only world boss daily reset status when authenticated,
+# or the public boss list without an API key.
 ./gw2cli daily bosses
 
 # Show daily Wizard's Vault objectives

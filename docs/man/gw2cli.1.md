@@ -23,6 +23,9 @@ The tool uses a local item cache to provide fast offline searching and to resolv
 
 ## COMMANDS
 
+### account
+Show account summary, including fractal level, WvW rank, AP, account age, and playtime.
+
 ### search [TERM] [FLAGS]
 Search your entire account inventory (Bank, Shared Inventory, and all Characters) for items.
 
@@ -32,7 +35,7 @@ Search your entire account inventory (Bank, Shared Inventory, and all Characters
 **-character** *NAME*
     Filter search results to a specific character.
 
-### list [types|characters]
+### list [types|characters|account]
 List high-level account information.
 
 **types**
@@ -40,6 +43,9 @@ List high-level account information.
 
 **characters**
     List all characters on the account with their level, profession, and total playtime.
+
+**account**
+    Show the account summary.
 
 ### wallet
 Show the account's wallet (Gold, Gems, Karma, etc.).
@@ -93,6 +99,33 @@ Track achievement progress and masteries.
 
 **masteries**
     Show mastery points earned across all regions and total luck.
+
+### daily [subcommand]
+Track daily reset status and objectives.
+
+**bosses**
+    List world bosses. With an API key, completed bosses are marked.
+
+**fractals**
+    Show current daily fractal achievements.
+
+**wizardsvault**
+    Show daily Wizard's Vault objectives. Requires an API key.
+
+### weekly
+Show weekly raid and Wizard's Vault status. Requires an API key.
+
+### recipes [subcommand] [ARGUMENTS]
+List and search unlocked account recipes. Requires an API key and local item cache.
+
+### collection [subcommand] [FILTER]
+Show account collection summaries and unlocked skins, dyes, minis, mounts, outfits, novelties, or finishers. Requires an API key.
+
+### legendary [TERM]
+Display all items currently in your Legendary Armory. Requires an API key and local item cache.
+
+## UNAUTHENTICATED COMMANDS
+The following commands work without `GW2_API_KEY`: `exchange`, `tp price`, `daily bosses`, `daily fractals`, `cache update`, `cache find`, and `achievements update-cache`.
 
 ## EXAMPLES
 **Search for "Legendary" items across the account:**
