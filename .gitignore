@@ -10,3 +10,4 @@
 .vscode/
 dist/
 .code_status
+asset_report.sh
