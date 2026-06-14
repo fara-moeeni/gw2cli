@@ -47,10 +47,10 @@ Description:
 
 func PrintWalletHelp() {
 	fmt.Println(`
-Usage: ./gw2cli wallet
+Usage: ./gw2cli wallet [term]
 
 Description:
-  Show account currencies and balances.`)
+  Show account currencies and balances. Provide a name or currency ID to filter wallet results.`)
 }
 
 func PrintAccountSummary(acc *inventory.AccountSummary) {

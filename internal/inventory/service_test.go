@@ -44,6 +44,39 @@ func TestSearchFiltersByTermTypeAndLocation(t *testing.T) {
 	}
 }
 
+func TestFilterWalletMatchesNameAndID(t *testing.T) {
+	wallet := []WalletEntry{
+		{ID: 1, Name: "Coin", Value: 12345},
+		{ID: 78, Name: "Fine Rift Essence", Value: 250},
+		{ID: 79, Name: "Rare Rift Essence", Value: 12},
+	}
+
+	byName := FilterWallet(wallet, "Fine Rift")
+	if len(byName) != 1 || byName[0].ID != 78 {
+		t.Fatalf("expected Fine Rift Essence by name, got %#v", byName)
+	}
+
+	byID := FilterWallet(wallet, "78")
+	if len(byID) != 1 || byID[0].Name != "Fine Rift Essence" {
+		t.Fatalf("expected Fine Rift Essence by ID, got %#v", byID)
+	}
+}
+
+func TestFilterWalletHandlesNoMatchAndEmptyTerm(t *testing.T) {
+	wallet := []WalletEntry{
+		{ID: 78, Name: "Fine Rift Essence", Value: 250},
+	}
+
+	if results := FilterWallet(wallet, "magnetite"); len(results) != 0 {
+		t.Fatalf("expected no matches, got %#v", results)
+	}
+
+	results := FilterWallet(wallet, " ")
+	if len(results) != len(wallet) || results[0].ID != wallet[0].ID {
+		t.Fatalf("expected empty term to return wallet entries, got %#v", results)
+	}
+}
+
 func TestMapToProgressComputesTiersAndAP(t *testing.T) {
 	service := &Service{}
 	progress := service.mapToProgress(

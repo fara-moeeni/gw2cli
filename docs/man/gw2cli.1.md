@@ -47,8 +47,8 @@ List high-level account information.
 **account**
     Show the account summary.
 
-### wallet
-Show the account's wallet (Gold, Gems, Karma, etc.).
+### wallet [TERM]
+Show the account's wallet currencies and balances. Provide a name or currency ID to filter results, for example `wallet "Fine Rift"` or `wallet 78`.
 
 ### tp <subcommand> [ARGUMENTS]
 Manage Trading Post (Commerce) activities.

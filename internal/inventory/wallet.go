@@ -2,6 +2,8 @@ package inventory
 
 import (
 	"fmt"
+	"strings"
+
 	"gw2cli/pkg/gw2api"
 )
 
@@ -51,4 +53,20 @@ func (s *Service) GetWallet() ([]WalletEntry, error) {
 	}
 
 	return results, nil
+}
+
+func FilterWallet(wallet []WalletEntry, term string) []WalletEntry {
+	term = strings.TrimSpace(strings.ToLower(term))
+	if term == "" {
+		return wallet
+	}
+
+	var filtered []WalletEntry
+	for _, entry := range wallet {
+		if fmt.Sprintf("%d", entry.ID) == term ||
+			strings.Contains(strings.ToLower(entry.Name), term) {
+			filtered = append(filtered, entry)
+		}
+	}
+	return filtered
 }
