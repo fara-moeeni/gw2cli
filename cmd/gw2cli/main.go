@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-const Version = "2.8.1"
+const Version = "2.8.2"
 
 func main() {
 	if err := run(os.Args[1:], os.Getenv("GW2_API_KEY")); err != nil {
