@@ -3,7 +3,7 @@ MAN_SOURCE=docs/man/gw2cli.1.md
 MAN_OUTPUT=docs/man/gw2cli.1
 
 build:
-	go build -o $(BINARY_NAME) cmd/gw2cli/main.go
+	go build -o $(BINARY_NAME) ./cmd/gw2cli
 
 test:
 	go test ./...
@@ -14,7 +14,7 @@ clean:
 	rm -f $(MAN_OUTPUT)
 
 run:
-	go run cmd/gw2cli/main.go
+	go run ./cmd/gw2cli
 
 # Generate man page from markdown (requires go-md2man)
 man:

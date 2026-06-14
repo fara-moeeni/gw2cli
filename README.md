@@ -58,7 +58,7 @@ Using **PowerShell**:
 ```powershell
 git clone https://github.com/fara-moeeni/gw2cli.git
 cd gw2cli
-go build -o gw2cli.exe cmd/gw2cli/main.go
+go build -o gw2cli.exe ./cmd/gw2cli
 ```
 
 If you have `make` installed (e.g., via Chocolatey or MSYS2), you can also run `make build`.
