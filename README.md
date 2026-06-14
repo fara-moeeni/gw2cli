@@ -1,12 +1,12 @@
 # GW2CLI - Guild Wars 2 Inventory Search Tool
 
-A fast and modular CLI tool written in Go to search your entire Guild Wars 2 account. It scans your **Bank**, **Shared Inventory Slots**, **Material Storage**, **Character Bags**, **Equipped Gear**, and **Account Wallet**.
+A fast and modular CLI tool written in Go to inspect your Guild Wars 2 account. It searches inventory items across your **Bank**, **Shared Inventory Slots**, **Material Storage**, **Character Bags**, and **Equipped Gear**, and can also query your **Account Wallet** currencies.
 
 ## Features
 
 - **Full Account Search**: Scans Bank, Shared Slots, Material Storage, and all Characters (Bags + Equipment).
 - **Character Management**: List all characters with level, profession, and playtime details.
-- **Wallet View**: Quickly view all account currencies and their values.
+- **Wallet View**: Quickly view or filter account currencies and their values.
 - **Fast**: Uses concurrent requests to fetch account data and parallel processing for item resolution.
 - **Smart Batching**: Automatically handles API limits when resolving thousands of item IDs.
 - **Flexible Filtering**: Search by Name, Item Type, ID, or Location.
@@ -16,11 +16,11 @@ A fast and modular CLI tool written in Go to search your entire Guild Wars 2 acc
 Web tools like [GW2Efficiency](https://gw2efficiency.com/) are excellent for visual overviews, but they are someone else's interface on your data. GW2CLI gives you raw, scriptable, pipeable text output, which opens up workflows that no web UI can match:
 
 - **Pipe into grep, awk, jq**: filter and transform your account data however you want, no UI constraints
-- **Feed into AI tools**: dump your inventory, achievement progress, or trading post history into [NotebookLM], ChatGPT, or Claude to get personalised farming plans, build advice, or goal tracking
+- **Feed into your own tools**: dump your inventory, achievement progress, or trading post history into notebooks, scripts, or reports for personalised farming plans, build advice, or goal tracking
 - **Automate and schedule**: run it in a cron job, diff yesterday's wallet against today's, alert yourself when a trading post order fills
 - **Offline and local**: your data stays on your machine, no third-party account required beyond your own GW2 API key
 - **Composable**: combine GW2CLI output with other tools: spreadsheets, databases, dashboards you control
-- **Build on top of it**: wrap GW2CLI in a small API server, back a Discord bot with it, or build a lightweight mobile app that queries it, your own personal GW2 assistant, hosted wherever you want, accessible from anywhere
+- **Build on top of it**: wrap GW2CLI in a small API server, back a Discord bot with it, or build a lightweight mobile app that queries it, hosted wherever you want and accessible from anywhere
 
 
 If you want to click around a pretty UI, GW2Efficiency is great. If you want to own your data and build on top of it, GW2CLI is for you.
@@ -152,7 +152,7 @@ set GW2_API_KEY=YOUR_API_KEY_HERE
 
 Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with `.\gw2cli.exe` in PowerShell or `gw2cli.exe` in Command Prompt.
 
-**Search for an item across your entire account:**
+**Search for an inventory item across your account:**
 ```bash
 ./gw2cli search "mystic coin"
 ./gw2cli search sword -type Weapon
@@ -166,9 +166,11 @@ Below are examples for **Linux/macOS**. For **Windows**, replace `./gw2cli` with
 ./gw2cli list types
 ```
 
-**Show account wallet (Gold, Gems, Karma, etc.):**
+**Show or filter account wallet currencies (Gold, Gems, Karma, Fine Rift Essence, etc.):**
 ```bash
 ./gw2cli wallet
+./gw2cli wallet "Fine Rift"
+./gw2cli wallet 78
 ```
 
 **Check Trading Post delivery, orders, and history:**

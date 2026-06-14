@@ -180,6 +180,7 @@ func runList(a *app, args []string) error {
 
 func runWallet(a *app, args []string) error {
 	walletCmd := flag.NewFlagSet("wallet", flag.ContinueOnError)
+	walletCmd.Usage = ui.PrintWalletHelp
 	if err := walletCmd.Parse(args); err != nil {
 		return err
 	}
@@ -187,10 +188,19 @@ func runWallet(a *app, args []string) error {
 		return err
 	}
 
+	term := strings.Join(walletCmd.Args(), " ")
+
 	fmt.Println("Fetching wallet...")
 	wallet, err := a.service.GetWallet()
 	if err != nil {
 		return err
+	}
+	if term != "" {
+		wallet = inventory.FilterWallet(wallet, term)
+		if len(wallet) == 0 {
+			fmt.Printf("No wallet currencies found matching %q.\n", term)
+			return nil
+		}
 	}
 	ui.PrintWallet(wallet)
 	return nil
