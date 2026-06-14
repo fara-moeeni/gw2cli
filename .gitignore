@@ -9,3 +9,4 @@
 *.env
 .vscode/
 dist/
+.code_status
