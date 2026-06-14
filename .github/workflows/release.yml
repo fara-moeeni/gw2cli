@@ -32,12 +32,12 @@ jobs:
         run: |
           mkdir -p dist
           # Linux
-          GOOS=linux GOARCH=amd64 go build -o dist/gw2cli-linux-amd64 cmd/gw2cli/main.go
+          GOOS=linux GOARCH=amd64 go build -o dist/gw2cli-linux-amd64 ./cmd/gw2cli
           # macOS
-          GOOS=darwin GOARCH=amd64 go build -o dist/gw2cli-darwin-amd64 cmd/gw2cli/main.go
-          GOOS=darwin GOARCH=arm64 go build -o dist/gw2cli-darwin-arm64 cmd/gw2cli/main.go
+          GOOS=darwin GOARCH=amd64 go build -o dist/gw2cli-darwin-amd64 ./cmd/gw2cli
+          GOOS=darwin GOARCH=arm64 go build -o dist/gw2cli-darwin-arm64 ./cmd/gw2cli
           # Windows
-          GOOS=windows GOARCH=amd64 go build -o dist/gw2cli-windows-amd64.exe cmd/gw2cli/main.go
+          GOOS=windows GOARCH=amd64 go build -o dist/gw2cli-windows-amd64.exe ./cmd/gw2cli
 
       - name: Update Latest Tag
         if: github.ref_type != 'tag' && github.ref_name == 'main'
